@@ -57,6 +57,35 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Feature Highlights */}
+      <section className="container mx-auto px-4 py-8">
+        <div className="grid md:grid-cols-3 gap-6">
+          <Card className="p-6 text-center hover:shadow-card transition-smooth">
+            <Shield className="w-12 h-12 text-primary mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Instant Safety Tips</h3>
+            <p className="text-sm text-muted-foreground">
+              Get immediate do's and don'ts for any wildlife encounter
+            </p>
+          </Card>
+          
+          <Card className="p-6 text-center hover:shadow-card transition-smooth">
+            <Users className="w-12 h-12 text-accent mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Local Rescue Teams</h3>
+            <p className="text-sm text-muted-foreground">
+              Connect with verified rescue organizations in your area
+            </p>
+          </Card>
+          
+          <Card className="p-6 text-center hover:shadow-card transition-smooth">
+            <AlertTriangle className="w-12 h-12 text-warning mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Emergency Response</h3>
+            <p className="text-sm text-muted-foreground">
+              24/7 emergency helplines and first aid guidance
+            </p>
+          </Card>
+        </div>
+      </section>
+
       {/* Main Chat Interface */}
       <main className="container mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-7 gap-6 h-[calc(100vh-200px)]">
@@ -93,33 +122,6 @@ const Index = () => {
               />
             </div>
           </div>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="mt-12 grid md:grid-cols-3 gap-6">
-          <Card className="p-6 text-center hover:shadow-card transition-smooth">
-            <Shield className="w-12 h-12 text-primary mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Instant Safety Tips</h3>
-            <p className="text-sm text-muted-foreground">
-              Get immediate do's and don'ts for any wildlife encounter
-            </p>
-          </Card>
-          
-          <Card className="p-6 text-center hover:shadow-card transition-smooth">
-            <Users className="w-12 h-12 text-accent mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Local Rescue Teams</h3>
-            <p className="text-sm text-muted-foreground">
-              Connect with verified rescue organizations in your area
-            </p>
-          </Card>
-          
-          <Card className="p-6 text-center hover:shadow-card transition-smooth">
-            <AlertTriangle className="w-12 h-12 text-warning mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Emergency Response</h3>
-            <p className="text-sm text-muted-foreground">
-              24/7 emergency helplines and first aid guidance
-            </p>
-          </Card>
         </div>
       </main>
     </div>
