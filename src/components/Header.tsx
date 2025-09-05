@@ -1,16 +1,39 @@
 import { useState } from 'react';
-import { Moon, Sun, Leaf } from 'lucide-react';
+import { Moon, Sun, Leaf, LogIn, LogOut, User, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTheme } from 'next-themes';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Header = () => {
   const [city, setCity] = useState(() => localStorage.getItem('wildaware-city') || '');
   const { theme, setTheme } = useTheme();
+  const { user, signOut } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleCityChange = (value: string) => {
     setCity(value);
     localStorage.setItem('wildaware-city', value);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Signed out",
+        description: "You've been successfully signed out.",
+      });
+      navigate('/');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -57,6 +80,43 @@ const Header = () => {
               aria-label="Enter your city for local rescue services"
             />
           </div>
+          
+          {user ? (
+            <div className="flex items-center gap-2">
+              <Link to="/activity">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-label="View your activities"
+                >
+                  <Activity className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">My Activities</span>
+                </Button>
+              </Link>
+              <span className="hidden lg:inline text-sm text-muted-foreground">
+                Welcome, {user.email?.split('@')[0]}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSignOut}
+                aria-label="Sign out"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </Button>
+            </div>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/auth')}
+              aria-label="Sign in"
+            >
+              <LogIn className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Sign In</span>
+            </Button>
+          )}
           
           <Button
             variant="ghost"

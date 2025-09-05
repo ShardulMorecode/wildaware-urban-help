@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { rescueOrgs, RescueOrg } from '@/data/wildlife-data';
 import { ClassificationResult } from '@/utils/wildlife-classifier';
+import { useActivityLogger } from '@/hooks/useActivityLogger';
 
 interface RescueListProps {
   classification?: ClassificationResult;
@@ -11,6 +12,8 @@ interface RescueListProps {
 }
 
 const RescueList = ({ classification, userCity }: RescueListProps) => {
+  const { logActivity } = useActivityLogger();
+  
   const filterRescueOrgs = (): RescueOrg[] => {
     let filtered = rescueOrgs;
 
@@ -46,14 +49,42 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
 
   const filteredOrgs = filterRescueOrgs().slice(0, 3); // Show top 3
 
-  const handleCall = (phone: string) => {
+  const handleCall = (phone: string, orgName?: string) => {
+    // Log the activity
+    logActivity({
+      activity_type: 'call_helpline',
+      species: classification?.speciesGuess,
+      ngo_name: orgName,
+      ngo_phone: phone,
+      notes: `Called ${orgName || 'rescue organization'} for ${classification?.speciesGuess || 'wildlife'} assistance`,
+      metadata: {
+        urgency: classification?.urgency,
+        userCity: userCity
+      }
+    });
+    
     window.location.href = `tel:${phone}`;
   };
 
-  const handleWhatsApp = (whatsapp: string) => {
+  const handleWhatsApp = (whatsapp: string, orgName?: string) => {
     const message = classification 
       ? `Hi, I need help with a ${classification.speciesGuess} encounter. ${classification.urgency} urgency.`
       : 'Hi, I need help with a wildlife encounter.';
+    
+    // Log the activity
+    logActivity({
+      activity_type: 'call_helpline',
+      species: classification?.speciesGuess,
+      ngo_name: orgName,
+      ngo_phone: whatsapp,
+      notes: `Contacted ${orgName || 'rescue organization'} via WhatsApp for ${classification?.speciesGuess || 'wildlife'} assistance`,
+      metadata: {
+        urgency: classification?.urgency,
+        userCity: userCity,
+        contactMethod: 'whatsapp'
+      }
+    });
+    
     window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -91,7 +122,7 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
             </p>
             <Button 
               variant="outline" 
-              onClick={() => handleCall('1800-425-4733')}
+              onClick={() => handleCall('1800-425-4733', 'Kerala State Helpline')}
               className="w-full"
             >
               <Phone className="w-4 h-4 mr-2" />
@@ -140,7 +171,7 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
                   <Button
                     size="sm"
                     variant={classification?.urgency === 'high' ? 'emergency' : 'rescue'}
-                    onClick={() => handleCall(org.phone)}
+                    onClick={() => handleCall(org.phone, org.name)}
                     className="flex-1"
                   >
                     <Phone className="w-4 h-4 mr-2" />
@@ -151,7 +182,7 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleWhatsApp(org.whatsapp!)}
+                      onClick={() => handleWhatsApp(org.whatsapp!, org.name)}
                       className="flex-1"
                     >
                       <MessageCircle className="w-4 h-4 mr-2" />
