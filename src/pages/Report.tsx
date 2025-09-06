@@ -112,25 +112,25 @@ const Report = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-4">Report Wildlife Sighting</h1>
-            <p className="text-xl text-muted-foreground">
+      <main className="container mx-auto px-4 py-4">
+        <div className="max-w-2xl mx-auto h-[calc(100vh-120px)] overflow-auto">
+          <div className="text-center mb-4">
+            <h1 className="text-2xl font-bold mb-2">Report Wildlife Sighting</h1>
+            <p className="text-sm text-muted-foreground">
               Help us track urban wildlife patterns in your area
             </p>
           </div>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-primary" />
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-primary" />
                 Sighting Details
               </CardTitle>
             </CardHeader>
             
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Species Selection */}
                 <div className="space-y-2">
                   <Label htmlFor="species" className="text-sm font-medium">
@@ -205,9 +205,9 @@ const Report = () => {
                 {/* Photo Upload Placeholder */}
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Photo (Optional)</Label>
-                  <div className="border-2 border-dashed border-muted rounded-xl p-8 text-center">
-                    <Camera className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-sm text-muted-foreground mb-2">
+                  <div className="border-2 border-dashed border-muted rounded-xl p-4 text-center">
+                    <Camera className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-xs text-muted-foreground mb-1">
                       Photo upload coming soon
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -217,12 +217,11 @@ const Report = () => {
                 </div>
 
                 {/* Submit Button */}
-                <div className="pt-4">
+                <div className="pt-2">
                   <Button
                     type="submit"
                     disabled={isSubmitting}
                     className="w-full"
-                    size="lg"
                     variant="nature"
                   >
                     {isSubmitting ? (
@@ -232,7 +231,7 @@ const Report = () => {
                       </>
                     ) : (
                       <>
-                        <MapPin className="w-5 h-5 mr-2" />
+                        <MapPin className="w-4 h-4 mr-2" />
                         Submit Sighting Report
                       </>
                     )}
@@ -248,22 +247,22 @@ const Report = () => {
 
           {/* Recent Sightings */}
           {sightings.length > 0 && (
-            <Card className="mt-8">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5" />
+            <Card className="mt-4">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
                   Recent Community Sightings
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {sightings.slice(-3).reverse().map((sighting) => (
-                    <div key={sighting.id} className="border rounded-xl p-4">
+                <div className="space-y-2 max-h-40 overflow-auto">
+                  {sightings.slice(-2).reverse().map((sighting) => (
+                    <div key={sighting.id} className="border rounded-xl p-3">
                       <div className="flex items-start justify-between">
                         <div>
-                          <h4 className="font-semibold">{sighting.species}</h4>
-                          <p className="text-sm text-muted-foreground">{sighting.location}</p>
-                          <p className="text-sm mt-2">{sighting.description}</p>
+                          <h4 className="text-sm font-semibold">{sighting.species}</h4>
+                          <p className="text-xs text-muted-foreground">{sighting.location}</p>
+                          <p className="text-xs mt-1 line-clamp-2">{sighting.description}</p>
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {sighting.timestamp.toLocaleDateString()}
@@ -272,7 +271,7 @@ const Report = () => {
                     </div>
                   ))}
                 </div>
-                <p className="text-center text-sm text-muted-foreground mt-4">
+                <p className="text-center text-xs text-muted-foreground mt-2">
                   Total community sightings: {sightings.length}
                 </p>
               </CardContent>

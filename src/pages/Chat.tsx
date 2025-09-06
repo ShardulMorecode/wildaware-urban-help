@@ -44,17 +44,17 @@ const Chat = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-7 gap-6 h-[calc(100vh-200px)]">
+      <main className="container mx-auto px-4 py-4">
+        <div className="grid lg:grid-cols-7 gap-4 h-[calc(100vh-120px)]">
           {/* Chat Area - 70% */}
           <div className="lg:col-span-5">
             <Card className="h-full flex flex-col shadow-card">
-              <div className="p-4 border-b">
-                <h2 className="text-xl font-semibold flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-primary" />
+              <div className="p-3 border-b">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-primary" />
                   Wildlife Safety Assistant
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Describe any wildlife encounter for immediate safety guidance
                 </p>
               </div>
@@ -65,7 +65,7 @@ const Chat = () => {
           </div>
 
           {/* Sidebar - 30% */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-3">
             {/* Safety Panel */}
             <div className="h-1/2">
               <SafetyPanel classification={currentClassification} />
