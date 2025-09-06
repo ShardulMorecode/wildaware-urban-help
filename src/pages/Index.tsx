@@ -1,34 +1,29 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
-import ChatInterface from '@/components/ChatInterface';
-import SafetyPanel from '@/components/SafetyPanel';
-import RescueList from '@/components/RescueList';
 import { AuthDialog } from '@/components/AuthDialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowRight, Shield, Users, AlertTriangle } from 'lucide-react';
-import { ClassificationResult } from '@/utils/wildlife-classifier';
 import { useAuth } from '@/contexts/AuthContext';
 import heroImage from '@/assets/hero-wildlife.jpg';
 
 const Index = () => {
   const { user } = useAuth();
-  const [currentClassification, setCurrentClassification] = useState<ClassificationResult | undefined>();
-  const [userCity] = useState(() => localStorage.getItem('wildaware-city') || '');
+  const navigate = useNavigate();
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-
-  const handleClassification = (result: ClassificationResult) => {
-    setCurrentClassification(result);
-  };
 
   const handleStartChat = () => {
     if (!user) {
       setShowAuthDialog(true);
+    } else {
+      navigate('/chat');
     }
   };
 
   const handleAuthSuccess = () => {
     setShowAuthDialog(false);
+    navigate('/chat');
   };
 
   return (
@@ -100,46 +95,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Main Chat Interface - Only show if authenticated */}
-      {user && (
-        <main className="container mx-auto px-4 py-8">
-          <div className="grid lg:grid-cols-7 gap-6 h-[calc(100vh-200px)]">
-            {/* Chat Area - 70% */}
-            <div className="lg:col-span-5">
-              <Card className="h-full flex flex-col shadow-card">
-                <div className="p-4 border-b">
-                  <h2 className="text-xl font-semibold flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-primary" />
-                    Wildlife Safety Assistant
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Describe any wildlife encounter for immediate safety guidance
-                  </p>
-                </div>
-                <div className="flex-1 overflow-hidden">
-                  <ChatInterface onClassification={handleClassification} />
-                </div>
-              </Card>
-            </div>
-
-            {/* Sidebar - 30% */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Safety Panel */}
-              <div className="h-1/2">
-                <SafetyPanel classification={currentClassification} />
-              </div>
-
-              {/* Rescue Organizations */}
-              <div className="h-1/2">
-                <RescueList 
-                  classification={currentClassification} 
-                  userCity={userCity}
-                />
-              </div>
-            </div>
-          </div>
-        </main>
-      )}
 
       {/* Auth Dialog */}
       <AuthDialog 

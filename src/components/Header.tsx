@@ -39,35 +39,35 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
           <Leaf className="h-8 w-8 text-primary" />
           <span className="text-2xl font-bold bg-gradient-nature bg-clip-text text-transparent">
             WildAware
           </span>
-        </div>
+        </Link>
 
         <nav className="hidden md:flex items-center gap-6">
-          <a 
-            href="/" 
+          <Link 
+            to="/chat" 
             className="text-sm font-medium transition-colors hover:text-primary"
-            aria-label="Home"
+            aria-label="Chat with AI assistant"
           >
             Chat
-          </a>
-          <a 
-            href="/learn" 
+          </Link>
+          <Link 
+            to="/learn" 
             className="text-sm font-medium transition-colors hover:text-primary"
             aria-label="Learn about wildlife"
           >
             Learn
-          </a>
-          <a 
-            href="/report" 
+          </Link>
+          <Link 
+            to="/report" 
             className="text-sm font-medium transition-colors hover:text-primary"
             aria-label="Report sighting"
           >
             Report
-          </a>
+          </Link>
         </nav>
 
         <div className="flex items-center gap-4">
