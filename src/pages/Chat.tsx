@@ -45,7 +45,7 @@ const Chat = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-4">
-        <div className="grid lg:grid-cols-7 gap-4 h-[calc(100vh-120px)]">
+        <div className="grid lg:grid-cols-7 gap-4 h-[calc(100vh-100px)]">
           {/* Chat Area - 70% */}
           <div className="lg:col-span-5">
             <Card className="h-full flex flex-col shadow-card">
@@ -67,12 +67,12 @@ const Chat = () => {
           {/* Sidebar - 30% */}
           <div className="lg:col-span-2 space-y-3">
             {/* Safety Panel */}
-            <div className="h-1/2">
+            <div className="h-[45%]">
               <SafetyPanel classification={currentClassification} />
             </div>
 
             {/* Rescue Organizations */}
-            <div className="h-1/2">
+            <div className="h-[45%]">
               <RescueList 
                 classification={currentClassification} 
                 userCity={userCity}
