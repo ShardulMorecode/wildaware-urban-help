@@ -4,7 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { classifyWildlifeEncounter, ClassificationResult } from '@/utils/wildlife-classifier';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+interface ClassificationResult {
+  speciesGuess: string;
+  urgency: 'low' | 'medium' | 'high';
+  intent: 'guidance' | 'call_help' | 'report_sighting';
+  confidence: number;
+  reasoning: string;
+}
 
 interface Message {
   id: number;
@@ -18,7 +27,7 @@ const ChatInterface = ({ onClassification }: { onClassification: (result: Classi
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! I'm your WildAware assistant. Describe any wildlife encounter and I'll provide immediate safety guidance. Are you currently in a safe location?",
+      text: "Hello! I'm your WildAware AI assistant. I have access to comprehensive Indian wildlife databases, rescue organizations, and safety protocols. Describe any wildlife encounter and I'll provide expert guidance. Are you currently in a safe location?",
       sender: 'system',
       timestamp: new Date()
     }
@@ -26,6 +35,7 @@ const ChatInterface = ({ onClassification }: { onClassification: (result: Classi
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -47,64 +57,58 @@ const ChatInterface = ({ onClassification }: { onClassification: (result: Classi
 
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
+    setInput('');
 
-    // Classify the message
-    const classification = classifyWildlifeEncounter(input);
-    onClassification(classification);
+    try {
+      // Call AI edge function with conversation history
+      const { data, error } = await supabase.functions.invoke('ai-wildlife-chat', {
+        body: { 
+          message: input,
+          conversation_history: messages.slice(-10) // Last 10 messages for context
+        }
+      });
 
-    // Generate response based on classification
-    const responseText = generateResponse(classification);
-    
-    setTimeout(() => {
+      if (error) throw error;
+
+      const { response, classification } = data;
+      
+      // Update classification in parent component
+      if (classification) {
+        onClassification(classification);
+      }
+
       const systemMessage: Message = {
         id: Date.now() + 1,
-        text: responseText,
+        text: response,
         sender: 'system',
         timestamp: new Date(),
         classification
       };
       
       setMessages(prev => [...prev, systemMessage]);
-      setIsLoading(false);
-    }, 1000);
-
-    setInput('');
-  };
-
-  const generateResponse = (classification: ClassificationResult): string => {
-    const { speciesGuess, urgency, intent, confidence } = classification;
-
-    let response = '';
-
-    if (urgency === 'high') {
-      response = `🚨 HIGH URGENCY DETECTED - ${speciesGuess.toUpperCase()} ENCOUNTER\n\n`;
-      response += `IMMEDIATE ACTIONS:\n`;
-      if (speciesGuess === 'snake') {
-        response += `• Keep 6+ feet distance\n• Secure children/pets\n• Do NOT approach\n• Call rescue immediately\n\n`;
-      } else if (speciesGuess === 'monkey') {
-        response += `• Avoid eye contact\n• Back away slowly\n• Secure all food\n• Do not run\n\n`;
-      } else if (speciesGuess === 'dog') {
-        response += `• Stand still, no sudden moves\n• Avoid eye contact\n• Do not run or shout\n• Speak calmly\n\n`;
-      }
-      response += `Check the Safety Panel → for detailed guidance and emergency contacts.`;
-    } else {
-      response = `Based on your description, I've identified this as a ${speciesGuess} encounter with ${urgency} urgency.\n\n`;
       
-      if (intent === 'call_help') {
-        response += `I'll show you rescue organizations in your area. Check the "Nearby Help" section →`;
-      } else if (intent === 'report_sighting') {
-        response += `You can report this sighting using the Report page. This helps track wildlife patterns in your area.`;
-      } else {
-        response += `I've loaded specific safety guidelines for ${speciesGuess} encounters. Follow the DO's and avoid the DON'Ts listed in the Safety Panel →`;
-      }
+    } catch (error) {
+      console.error('Chat error:', error);
+      toast({
+        title: "Connection Error",
+        description: "Unable to get AI response. Please try again.",
+        variant: "destructive",
+      });
+      
+      // Fallback message
+      const errorMessage: Message = {
+        id: Date.now() + 1,
+        text: "I'm sorry, I'm having trouble connecting right now. If this is an emergency, please contact local wildlife rescue services immediately.",
+        sender: 'system',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
-
-    if (confidence < 0.7) {
-      response += `\n\n⚠️ If this doesn't match your situation, please provide more details about the animal's appearance and behavior.`;
-    }
-
-    return response;
   };
+
 
   const handleQuickAction = (action: string) => {
     setInput(action);
@@ -176,7 +180,7 @@ const ChatInterface = ({ onClassification }: { onClassification: (result: Classi
           <Button
             variant="outline"
             size="sm"
-            onClick={() => handleQuickAction('I saw a snake in my garden')}
+            onClick={() => handleQuickAction('I saw a snake in my garden, what should I do?')}
             className="rounded-full"
           >
             <Shield className="w-4 h-4 mr-2" />
@@ -185,7 +189,7 @@ const ChatInterface = ({ onClassification }: { onClassification: (result: Classi
           <Button
             variant="outline"
             size="sm"
-            onClick={() => handleQuickAction('I want to report a monkey sighting')}
+            onClick={() => handleQuickAction('I want to report a monkey sighting in Delhi')}
             className="rounded-full"
           >
             <Camera className="w-4 h-4 mr-2" />
@@ -194,11 +198,11 @@ const ChatInterface = ({ onClassification }: { onClassification: (result: Classi
           <Button
             variant="outline"
             size="sm"
-            onClick={() => handleQuickAction('Who to call for snake rescue?')}
+            onClick={() => handleQuickAction('Emergency: Snake in my house in Mumbai, need immediate rescue')}
             className="rounded-full"
           >
             <Phone className="w-4 h-4 mr-2" />
-            Call Help
+            Emergency Help
           </Button>
         </div>
 

@@ -3,7 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { rescueOrgs, RescueOrg } from '@/data/wildlife-data';
-import { ClassificationResult } from '@/utils/wildlife-classifier';
+interface ClassificationResult {
+  speciesGuess: string;
+  urgency: 'low' | 'medium' | 'high';
+  intent: 'guidance' | 'call_help' | 'report_sighting';
+  confidence: number;
+  reasoning: string;
+}
 import { useActivityLogger } from '@/hooks/useActivityLogger';
 
 interface RescueListProps {

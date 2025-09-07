@@ -2,7 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Heart, AlertTriangle } from 'lucide-react';
 import { SafetyGuideline, Species, safetyGuidelines, species } from '@/data/wildlife-data';
-import { ClassificationResult } from '@/utils/wildlife-classifier';
+interface ClassificationResult {
+  speciesGuess: string;
+  urgency: 'low' | 'medium' | 'high';
+  intent: 'guidance' | 'call_help' | 'report_sighting';
+  confidence: number;
+  reasoning: string;
+}
 
 interface SafetyPanelProps {
   classification?: ClassificationResult;

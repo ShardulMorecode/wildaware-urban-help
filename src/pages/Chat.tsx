@@ -6,7 +6,13 @@ import SafetyPanel from '@/components/SafetyPanel';
 import RescueList from '@/components/RescueList';
 import { Card } from '@/components/ui/card';
 import { Shield } from 'lucide-react';
-import { ClassificationResult } from '@/utils/wildlife-classifier';
+interface ClassificationResult {
+  speciesGuess: string;
+  urgency: 'low' | 'medium' | 'high';
+  intent: 'guidance' | 'call_help' | 'report_sighting';
+  confidence: number;
+  reasoning: string;
+}
 import { useAuth } from '@/contexts/AuthContext';
 
 const Chat = () => {
