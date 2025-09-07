@@ -56,6 +56,123 @@ export type Database = {
         }
         Relationships: []
       }
+      rescue_orgs: {
+        Row: {
+          created_at: string
+          district: string | null
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          source_url: string | null
+          species_supported: string[] | null
+          state: string | null
+          type: string | null
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          created_at?: string
+          district?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          source_url?: string | null
+          species_supported?: string[] | null
+          state?: string | null
+          type?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          created_at?: string
+          district?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          source_url?: string | null
+          species_supported?: string[] | null
+          state?: string | null
+          type?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      safety_guidelines: {
+        Row: {
+          authority_to_contact: string | null
+          created_at: string
+          donts: string[] | null
+          dos: string[] | null
+          id: string
+          situation: string
+          updated_at: string
+        }
+        Insert: {
+          authority_to_contact?: string | null
+          created_at?: string
+          donts?: string[] | null
+          dos?: string[] | null
+          id?: string
+          situation: string
+          updated_at?: string
+        }
+        Update: {
+          authority_to_contact?: string | null
+          created_at?: string
+          donts?: string[] | null
+          dos?: string[] | null
+          id?: string
+          situation?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      species: {
+        Row: {
+          behaviour: string | null
+          category: string | null
+          common_name: string
+          created_at: string
+          description: string | null
+          dos_donts: string | null
+          id: string
+          image_url: string | null
+          risk_level: string | null
+          scientific_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          behaviour?: string | null
+          category?: string | null
+          common_name: string
+          created_at?: string
+          description?: string | null
+          dos_donts?: string | null
+          id?: string
+          image_url?: string | null
+          risk_level?: string | null
+          scientific_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          behaviour?: string | null
+          category?: string | null
+          common_name?: string
+          created_at?: string
+          description?: string | null
+          dos_donts?: string | null
+          id?: string
+          image_url?: string | null
+          risk_level?: string | null
+          scientific_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_activities: {
         Row: {
           activity_type: string
