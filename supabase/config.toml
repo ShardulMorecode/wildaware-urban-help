@@ -1,4 +1,4 @@
 project_id = "srmxwubpljzfvhgdxrdr"
 
-[functions.ai-wildlife-chat]
+[functions.wildlife-chat]
 verify_jwt = true

@@ -27,7 +27,7 @@ const ChatInterface = ({ onClassification }: { onClassification: (result: Classi
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! I'm your WildAware AI assistant. I have access to comprehensive Indian wildlife databases, rescue organizations, and safety protocols. Describe any wildlife encounter and I'll provide expert guidance. Are you currently in a safe location?",
+      text: "Hello! I'm your WildAware assistant. I have access to comprehensive Indian wildlife databases, rescue organizations, and safety protocols. Describe any wildlife encounter and I'll provide expert guidance. Are you currently in a safe location?",
       sender: 'system',
       timestamp: new Date()
     }
@@ -60,11 +60,10 @@ const ChatInterface = ({ onClassification }: { onClassification: (result: Classi
     setInput('');
 
     try {
-      // Call AI edge function with conversation history
-      const { data, error } = await supabase.functions.invoke('ai-wildlife-chat', {
+      // Call wildlife chat function
+      const { data, error } = await supabase.functions.invoke('wildlife-chat', {
         body: { 
-          message: input,
-          conversation_history: messages.slice(-10) // Last 10 messages for context
+          message: input
         }
       });
 
@@ -91,7 +90,7 @@ const ChatInterface = ({ onClassification }: { onClassification: (result: Classi
       console.error('Chat error:', error);
       toast({
         title: "Connection Error",
-        description: "Unable to get AI response. Please try again.",
+        description: "Unable to get response. Please try again.",
         variant: "destructive",
       });
       
