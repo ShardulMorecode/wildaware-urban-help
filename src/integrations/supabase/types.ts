@@ -103,30 +103,42 @@ export type Database = {
       }
       safety_guidelines: {
         Row: {
+          authority_notes: string | null
           authority_to_contact: string | null
           created_at: string
           donts: string[] | null
           dos: string[] | null
+          first_aid: string | null
           id: string
           situation: string
+          source_url: string | null
+          species_common_name: string | null
           updated_at: string
         }
         Insert: {
+          authority_notes?: string | null
           authority_to_contact?: string | null
           created_at?: string
           donts?: string[] | null
           dos?: string[] | null
+          first_aid?: string | null
           id?: string
           situation: string
+          source_url?: string | null
+          species_common_name?: string | null
           updated_at?: string
         }
         Update: {
+          authority_notes?: string | null
           authority_to_contact?: string | null
           created_at?: string
           donts?: string[] | null
           dos?: string[] | null
+          first_aid?: string | null
           id?: string
           situation?: string
+          source_url?: string | null
+          species_common_name?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -140,9 +152,12 @@ export type Database = {
           description: string | null
           dos_donts: string | null
           id: string
+          image_ref: string | null
           image_url: string | null
+          keywords: string[] | null
           risk_level: string | null
           scientific_name: string | null
+          source_url: string | null
           updated_at: string
         }
         Insert: {
@@ -153,9 +168,12 @@ export type Database = {
           description?: string | null
           dos_donts?: string | null
           id?: string
+          image_ref?: string | null
           image_url?: string | null
+          keywords?: string[] | null
           risk_level?: string | null
           scientific_name?: string | null
+          source_url?: string | null
           updated_at?: string
         }
         Update: {
@@ -166,9 +184,12 @@ export type Database = {
           description?: string | null
           dos_donts?: string | null
           id?: string
+          image_ref?: string | null
           image_url?: string | null
+          keywords?: string[] | null
           risk_level?: string | null
           scientific_name?: string | null
+          source_url?: string | null
           updated_at?: string
         }
         Relationships: []
