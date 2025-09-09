@@ -23,31 +23,66 @@ serve(async (req) => {
 
     console.log('Received message:', message);
 
-    // Fetch relevant data from your sheets-imported tables
+    // Fetch data directly from Google Sheets
+    const sheetUrls = {
+      species: 'https://docs.google.com/spreadsheets/d/1xDhXyZMvNtRwKBKo9bPYGsW9jhktQ6Xr-_vLyXtZhKQ/edit?usp=sharing',
+      rescueOrgs: 'https://docs.google.com/spreadsheets/d/1SBVOOyKHJHQnXCZXzqZcDYWUl6-k8_E6X9jzePdDQGw/edit?usp=sharing', 
+      safetyGuidelines: 'https://docs.google.com/spreadsheets/d/1_xSV6R1IYbCGKCN7XaW8jcO6Kfqy6TdHqJIKJFSTT_M/edit?usp=sharing'
+    };
+
+    // Convert Google Sheets URLs to CSV export URLs
+    const getCsvUrl = (sheetUrl: string) => {
+      const sheetId = sheetUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)?.[1];
+      return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+    };
+
+    // Fetch and parse CSV data
+    const fetchSheetData = async (url: string) => {
+      try {
+        const response = await fetch(getCsvUrl(url));
+        const csvText = await response.text();
+        const lines = csvText.split('\n').filter(line => line.trim());
+        if (lines.length < 2) return [];
+        
+        const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+        return lines.slice(1).map(line => {
+          const values = line.split(',').map(v => v.replace(/"/g, '').trim());
+          const obj: any = {};
+          headers.forEach((header, index) => {
+            obj[header.toLowerCase().replace(/\s+/g, '_')] = values[index] || '';
+          });
+          return obj;
+        });
+      } catch (error) {
+        console.error('Error fetching sheet data:', error);
+        return [];
+      }
+    };
+
     const [speciesData, rescueOrgsData, safetyData] = await Promise.all([
-      supabase.from('species').select('*').limit(50),
-      supabase.from('rescue_orgs').select('*').limit(100),
-      supabase.from('safety_guidelines').select('*').limit(50)
+      fetchSheetData(sheetUrls.species),
+      fetchSheetData(sheetUrls.rescueOrgs),
+      fetchSheetData(sheetUrls.safetyGuidelines)
     ]);
 
-    console.log('Fetched data - Species:', speciesData.data?.length, 'Rescue Orgs:', rescueOrgsData.data?.length, 'Safety Guidelines:', safetyData.data?.length);
+    console.log('Fetched data - Species:', speciesData?.length, 'Rescue Orgs:', rescueOrgsData?.length, 'Safety Guidelines:', safetyData?.length);
 
     // Create system prompt with your data
     const systemPrompt = `You are WildAware AI, an expert wildlife safety assistant. You have access to comprehensive databases about Indian wildlife, rescue organizations, and safety protocols.
 
 AVAILABLE DATA:
-- ${speciesData.data?.length || 0} species records with behavior, risk levels, and safety information
-- ${rescueOrgsData.data?.length || 0} rescue organizations across India with contact details
-- ${safetyData.data?.length || 0} situation-specific safety guidelines
+- ${speciesData?.length || 0} species records with behavior, risk levels, and safety information
+- ${rescueOrgsData?.length || 0} rescue organizations across India with contact details
+- ${safetyData?.length || 0} situation-specific safety guidelines
 
 SPECIES DATABASE:
-${speciesData.data?.slice(0, 20).map(s => `- ${s.common_name} (${s.scientific_name}): Risk Level: ${s.risk_level}, Category: ${s.category}`).join('\n') || 'No species data available'}
+${speciesData?.slice(0, 20).map((s: any) => `- ${s.common_name || s.name} (${s.scientific_name || 'N/A'}): Risk Level: ${s.risk_level || 'N/A'}, Category: ${s.category || 'N/A'}`).join('\n') || 'No species data available'}
 
 RESCUE ORGANIZATIONS (Sample):
-${rescueOrgsData.data?.slice(0, 10).map(org => `- ${org.name} (${org.state}, ${org.district}): Phone: ${org.phone}, WhatsApp: ${org.whatsapp}, Species: ${org.species_supported?.join(', ') || 'General'}`).join('\n') || 'No rescue org data available'}
+${rescueOrgsData?.slice(0, 10).map((org: any) => `- ${org.name || org.organization_name} (${org.state}, ${org.district || org.city}): Phone: ${org.phone || org.contact_number}, WhatsApp: ${org.whatsapp || 'N/A'}, Species: ${org.species_supported || 'General'}`).join('\n') || 'No rescue org data available'}
 
 SAFETY GUIDELINES:
-${safetyData.data?.slice(0, 10).map(sg => `- ${sg.situation}: DO: ${sg.dos?.join(', ') || 'N/A'} | DON'T: ${sg.donts?.join(', ') || 'N/A'}`).join('\n') || 'No safety guidelines available'}
+${safetyData?.slice(0, 10).map((sg: any) => `- ${sg.situation || sg.scenario}: DO: ${sg.dos || sg.do || 'N/A'} | DON'T: ${sg.donts || sg.dont || 'N/A'}`).join('\n') || 'No safety guidelines available'}
 
 INSTRUCTIONS:
 1. Analyze user messages for wildlife encounters, safety concerns, or rescue needs
@@ -114,10 +149,12 @@ Remember: User safety is paramount. Better to be overly cautious than risk harm.
                    message.toLowerCase().includes('rescue') ? 'medium' : 'low';
 
     // Extract species mentioned in message
-    const speciesGuess = speciesData.data?.find(s => 
-      message.toLowerCase().includes(s.common_name.toLowerCase()) ||
+    const speciesGuess = speciesData?.find((s: any) => 
+      message.toLowerCase().includes((s.common_name || s.name || '').toLowerCase()) ||
       (s.scientific_name && message.toLowerCase().includes(s.scientific_name.toLowerCase()))
-    )?.common_name || 'unknown';
+    )?.common_name || speciesData?.find((s: any) => 
+      message.toLowerCase().includes((s.name || '').toLowerCase())
+    )?.name || 'unknown';
 
     const classification = {
       speciesGuess,
