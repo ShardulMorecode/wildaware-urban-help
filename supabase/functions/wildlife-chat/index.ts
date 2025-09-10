@@ -21,14 +21,20 @@ serve(async (req) => {
 
     console.log('Received message:', message);
 
-    // Fetch species data from Supabase
-    const { data: speciesData, error: speciesError } = await supabase
-      .from('species')
-      .select('common_name, scientific_name, risk_level, keywords');
+    // Fetch all data from Supabase
+    const [speciesResult, safetyResult, rescueResult] = await Promise.all([
+      supabase.from('species').select('*'),
+      supabase.from('safety_guidelines').select('*'),
+      supabase.from('rescue_orgs').select('*')
+    ]);
 
-    if (speciesError) {
-      console.error('Error fetching species:', speciesError);
-    }
+    const { data: speciesData, error: speciesError } = speciesResult;
+    const { data: safetyData, error: safetyError } = safetyResult;
+    const { data: rescueData, error: rescueError } = rescueResult;
+
+    if (speciesError) console.error('Error fetching species:', speciesError);
+    if (safetyError) console.error('Error fetching safety guidelines:', safetyError);
+    if (rescueError) console.error('Error fetching rescue orgs:', rescueError);
 
     // Rule-based classification
     const messageLower = message.toLowerCase();
@@ -94,23 +100,72 @@ serve(async (req) => {
       reasoning: `Detected ${urgency} urgency situation involving ${speciesGuess}`
     };
 
-    // Generate response based on classification
+    // Get safety guidelines for identified species
+    let safetyGuidelines = null;
+    if (speciesGuess !== 'unknown' && safetyData) {
+      safetyGuidelines = safetyData.find(guide => 
+        guide.species_common_name?.toLowerCase() === speciesGuess.toLowerCase()
+      );
+    }
+
+    // Generate comprehensive response
     let response = '';
     
     if (urgency === 'high') {
-      response = '🚨 **URGENT**: This sounds like an emergency situation. ';
+      response = '🚨 **URGENT EMERGENCY**: This is a high-risk situation. ';
       if (speciesGuess !== 'unknown') {
         response += `You've encountered a ${speciesGuess}. `;
+        
+        // Add specific emergency dos and don'ts
+        if (safetyGuidelines) {
+          response += '\n\n**IMMEDIATE SAFETY ACTIONS:**\n';
+          if (safetyGuidelines.dos) {
+            response += `✅ **DO**: ${safetyGuidelines.dos}\n`;
+          }
+          if (safetyGuidelines.donts) {
+            response += `❌ **DON'T**: ${safetyGuidelines.donts}\n`;
+          }
+          if (safetyGuidelines.first_aid) {
+            response += `🏥 **FIRST AID**: ${safetyGuidelines.first_aid}\n`;
+          }
+        }
       }
-      response += 'Stay calm, maintain distance, and contact emergency services or wildlife rescue immediately.';
+      response += '\n🆘 **Contact emergency services immediately!**';
+      
     } else if (speciesGuess !== 'unknown') {
-      response = `I've identified this as likely involving a ${speciesGuess}. `;
+      response = `I've identified this as likely involving a **${speciesGuess}**. `;
+      
       if (urgency === 'medium') {
         response += 'This requires caution. ';
       }
-      response += 'Let me provide you with specific safety guidelines for this species.';
+      
+      // Add comprehensive safety guidelines
+      if (safetyGuidelines) {
+        response += '\n\n**SAFETY GUIDELINES:**\n';
+        if (safetyGuidelines.dos) {
+          response += `✅ **What to DO**: ${safetyGuidelines.dos}\n\n`;
+        }
+        if (safetyGuidelines.donts) {
+          response += `❌ **What NOT to do**: ${safetyGuidelines.donts}\n\n`;
+        }
+        if (safetyGuidelines.first_aid) {
+          response += `🏥 **First Aid**: ${safetyGuidelines.first_aid}\n\n`;
+        }
+        if (safetyGuidelines.authority_notes) {
+          response += `📋 **Important Notes**: ${safetyGuidelines.authority_notes}`;
+        }
+      } else {
+        response += 'Please maintain a safe distance and contact local wildlife authorities for guidance.';
+      }
+      
     } else {
-      response = 'I understand you have a wildlife-related query. While I couldn\'t identify the specific species, I can provide general wildlife safety advice. Please provide more details about the animal or situation.';
+      response = 'I understand you have a wildlife-related query. While I couldn\'t identify the specific species, I can provide general wildlife safety advice.\n\n';
+      response += '🛡️ **General Safety Tips:**\n';
+      response += '• Maintain a safe distance from any wild animal\n';
+      response += '• Do not attempt to feed or approach the animal\n';
+      response += '• Make yourself appear larger and back away slowly\n';
+      response += '• Contact local wildlife authorities for assistance\n\n';
+      response += 'Please provide more details about the animal (size, color, behavior) for specific guidance.';
     }
 
     console.log('Generated classification:', classification);

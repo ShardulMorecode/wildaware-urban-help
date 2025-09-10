@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Heart, AlertTriangle } from 'lucide-react';
-import { SafetyGuideline, Species, safetyGuidelines, species } from '@/data/wildlife-data';
+import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from 'react';
 interface ClassificationResult {
   speciesGuess: string;
   urgency: 'low' | 'medium' | 'high';
@@ -10,11 +11,89 @@ interface ClassificationResult {
   reasoning: string;
 }
 
+interface SafetyGuideline {
+  id: string;
+  species_common_name: string;
+  dos: string[] | string;
+  donts: string[] | string;
+  first_aid: string;
+  authority_notes: string;
+  source_url: string;
+  species_id?: string;
+  authority_to_contact?: string;
+  created_at?: string;
+  updated_at?: string;
+  situation?: string;
+}
+
+interface Species {
+  id: string;
+  common_name: string;
+  scientific_name: string;
+  risk_level: string;
+  keywords: string[];
+  image_ref: string;
+  source_url: string;
+}
+
 interface SafetyPanelProps {
   classification?: ClassificationResult;
 }
 
 const SafetyPanel = ({ classification }: SafetyPanelProps) => {
+  const [safetyGuidelines, setSafetyGuidelines] = useState<SafetyGuideline | null>(null);
+  const [speciesData, setSpeciesData] = useState<Species | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!classification || classification.speciesGuess === 'unknown') {
+      setSafetyGuidelines(null);
+      setSpeciesData(null);
+      return;
+    }
+
+    const fetchGuidelines = async () => {
+      setLoading(true);
+      try {
+        // Fetch species data
+        const { data: speciesResult, error: speciesError } = await supabase
+          .from('species')
+          .select('*')
+          .ilike('common_name', classification.speciesGuess)
+          .single();
+
+        if (speciesError && speciesError.code !== 'PGRST116') {
+          console.error('Error fetching species:', speciesError);
+        }
+
+        if (speciesResult) {
+          setSpeciesData(speciesResult);
+          
+          // Fetch safety guidelines
+          const { data: guidelinesResult, error: guidelinesError } = await supabase
+            .from('safety_guidelines')
+            .select('*')
+            .ilike('species_common_name', classification.speciesGuess)
+            .single();
+
+          if (guidelinesError && guidelinesError.code !== 'PGRST116') {
+            console.error('Error fetching guidelines:', guidelinesError);
+          }
+
+          if (guidelinesResult) {
+            setSafetyGuidelines(guidelinesResult as SafetyGuideline);
+          }
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGuidelines();
+  }, [classification]);
+
   if (!classification || classification.speciesGuess === 'unknown') {
     return (
       <Card className="h-full">
@@ -56,10 +135,20 @@ const SafetyPanel = ({ classification }: SafetyPanelProps) => {
     );
   }
 
-  const speciesData = species.find(s => s.commonName.toLowerCase() === classification.speciesGuess);
-  const guidelines = safetyGuidelines.find(g => g.speciesId === speciesData?.id);
+  if (loading) {
+    return (
+      <Card className="h-full">
+        <CardContent className="p-6 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-8 h-8 mx-auto mb-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-sm text-muted-foreground">Loading safety guidelines...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  if (!speciesData || !guidelines) {
+  if (!speciesData || !safetyGuidelines) {
     return (
       <Card className="h-full">
         <CardContent className="p-6">
@@ -102,14 +191,14 @@ const SafetyPanel = ({ classification }: SafetyPanelProps) => {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <AlertTriangle className={`w-5 h-5 ${styles.icon}`} />
-            {speciesData.commonName} Safety
+            {speciesData.common_name} Safety
           </CardTitle>
           <Badge className={styles.badge}>
             {classification.urgency} urgency
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground">
-          Risk Level: {speciesData.riskLevel} • {speciesData.description}
+          Risk Level: {speciesData.risk_level} • {speciesData.scientific_name}
         </p>
       </CardHeader>
 
@@ -120,14 +209,9 @@ const SafetyPanel = ({ classification }: SafetyPanelProps) => {
             <CheckCircle className="w-4 h-4" />
             Immediate DO's
           </h4>
-          <ul className="space-y-2">
-            {guidelines.dos.map((item, index) => (
-              <li key={index} className="flex items-start gap-2 text-sm">
-                <CheckCircle className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
+          <div className="text-sm bg-success/10 p-3 rounded-xl">
+            {Array.isArray(safetyGuidelines.dos) ? safetyGuidelines.dos.join('. ') : safetyGuidelines.dos}
+          </div>
         </div>
 
         {/* DON'Ts */}
@@ -136,14 +220,9 @@ const SafetyPanel = ({ classification }: SafetyPanelProps) => {
             <XCircle className="w-4 h-4" />
             DON'T Do These
           </h4>
-          <ul className="space-y-2">
-            {guidelines.donts.map((item, index) => (
-              <li key={index} className="flex items-start gap-2 text-sm">
-                <XCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
+          <div className="text-sm bg-destructive/10 p-3 rounded-xl">
+            {Array.isArray(safetyGuidelines.donts) ? safetyGuidelines.donts.join('. ') : safetyGuidelines.donts}
+          </div>
         </div>
 
         {/* First Aid */}
@@ -152,19 +231,19 @@ const SafetyPanel = ({ classification }: SafetyPanelProps) => {
             <Heart className="w-4 h-4" />
             First Aid
           </h4>
-          <p className="text-sm bg-accent-soft p-3 rounded-xl">
-            {guidelines.firstAid}
-          </p>
+          <div className="text-sm bg-info/10 p-3 rounded-xl">
+            {safetyGuidelines.first_aid}
+          </div>
         </div>
 
         {/* Authority Notes */}
-        {guidelines.authorityNotes && (
+        {safetyGuidelines.authority_notes && (
           <div className="space-y-3">
             <h4 className="font-semibold text-muted-foreground text-xs uppercase tracking-wide">
               Important Notes
             </h4>
             <p className="text-sm text-muted-foreground bg-muted p-3 rounded-xl">
-              {guidelines.authorityNotes}
+              {safetyGuidelines.authority_notes}
             </p>
           </div>
         )}

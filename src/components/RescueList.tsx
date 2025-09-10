@@ -2,7 +2,8 @@ import { Phone, MessageCircle, Clock, MapPin } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { rescueOrgs, RescueOrg } from '@/data/wildlife-data';
+import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from 'react';
 interface ClassificationResult {
   speciesGuess: string;
   urgency: 'low' | 'medium' | 'high';
@@ -10,6 +11,20 @@ interface ClassificationResult {
   confidence: number;
   reasoning: string;
 }
+
+interface RescueOrg {
+  id: string;
+  name: string;
+  state: string;
+  district: string;
+  phone: string;
+  whatsapp: string;
+  species_supported: string[];
+  email: string;
+  type: string;
+  source_url: string;
+}
+
 import { useActivityLogger } from '@/hooks/useActivityLogger';
 
 interface RescueListProps {
@@ -19,35 +34,62 @@ interface RescueListProps {
 
 const RescueList = ({ classification, userCity }: RescueListProps) => {
   const { logActivity } = useActivityLogger();
-  
+  const [rescueOrgs, setRescueOrgs] = useState<RescueOrg[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRescueOrgs = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('rescue_orgs')
+          .select('*');
+        
+        if (error) {
+          console.error('Error fetching rescue orgs:', error);
+        } else {
+          setRescueOrgs(data || []);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRescueOrgs();
+  }, []);
+
   const filterRescueOrgs = (): RescueOrg[] => {
     let filtered = rescueOrgs;
 
-    // Filter by city if provided
+    // Filter by state/district if userCity provided  
     if (userCity) {
       filtered = filtered.filter(org => 
-        org.city.toLowerCase().includes(userCity.toLowerCase()) ||
-        org.city === 'Statewide'
+        org.state?.toLowerCase().includes(userCity.toLowerCase()) ||
+        org.district?.toLowerCase().includes(userCity.toLowerCase()) ||
+        org.name?.toLowerCase().includes(userCity.toLowerCase())
       );
     }
 
     // Filter by species if classification is available
     if (classification && classification.speciesGuess !== 'unknown') {
       filtered = filtered.filter(org =>
-        org.speciesSupported.includes(classification.speciesGuess) ||
-        org.speciesSupported.includes('wildlife')
+        org.species_supported?.some(species => 
+          species.toLowerCase().includes(classification.speciesGuess.toLowerCase()) ||
+          classification.speciesGuess.toLowerCase().includes(species.toLowerCase())
+        ) || org.species_supported?.includes('wildlife')
       );
     }
 
-    // Sort by relevance: 24x7 first, then city match, then statewide
+    // Sort by relevance: type (Government first), then by district match
     return filtered.sort((a, b) => {
-      if (a.hours.includes('24') && !b.hours.includes('24')) return -1;
-      if (!a.hours.includes('24') && b.hours.includes('24')) return 1;
+      if (a.type === 'Government Helpline' && b.type !== 'Government Helpline') return -1;
+      if (a.type !== 'Government Helpline' && b.type === 'Government Helpline') return 1;
       if (userCity) {
-        const aMatchesCity = a.city.toLowerCase().includes(userCity.toLowerCase());
-        const bMatchesCity = b.city.toLowerCase().includes(userCity.toLowerCase());
-        if (aMatchesCity && !bMatchesCity) return -1;
-        if (!aMatchesCity && bMatchesCity) return 1;
+        const aMatchesDistrict = a.district?.toLowerCase().includes(userCity.toLowerCase());
+        const bMatchesDistrict = b.district?.toLowerCase().includes(userCity.toLowerCase());
+        if (aMatchesDistrict && !bMatchesDistrict) return -1;
+        if (!aMatchesDistrict && bMatchesDistrict) return 1;
       }
       return 0;
     });
@@ -120,7 +162,12 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {filteredOrgs.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-6">
+            <div className="w-8 h-8 mx-auto mb-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-sm text-muted-foreground">Loading rescue organizations...</p>
+          </div>
+        ) : filteredOrgs.length === 0 ? (
           <div className="text-center py-6">
             <Phone className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
             <p className="text-sm text-muted-foreground mb-4">
@@ -144,28 +191,28 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
                     <h4 className="font-semibold text-sm">{org.name}</h4>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                       <MapPin className="w-3 h-3" />
-                      {org.city}
+                      {org.district}, {org.state}
                     </div>
                   </div>
-                  {org.hours.includes('24') && (
+                  {org.type === 'Government Helpline' && (
                     <Badge variant="secondary" className="text-xs">
-                      24/7
+                      Official
                     </Badge>
                   )}
                 </div>
 
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Clock className="w-3 h-3" />
-                  {org.hours}
+                  {org.type}
                 </div>
 
                 <div className="flex flex-wrap gap-1">
-                  {org.speciesSupported.map((species) => (
+                  {org.species_supported?.map((species) => (
                     <Badge 
                       key={species} 
                       variant="outline" 
                       className={`text-xs ${
-                        classification?.speciesGuess === species ? 'bg-primary text-primary-foreground' : ''
+                        classification?.speciesGuess.toLowerCase().includes(species.toLowerCase()) ? 'bg-primary text-primary-foreground' : ''
                       }`}
                     >
                       {species}
