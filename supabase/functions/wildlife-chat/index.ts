@@ -39,24 +39,10 @@ serve(async (req) => {
     // Rule-based classification
     const messageLower = message.toLowerCase();
     
-    // Detect urgency
-    let urgency = 'low';
-    if (messageLower.includes('emergency') || 
-        messageLower.includes('urgent') || 
-        messageLower.includes('attack') || 
-        messageLower.includes('bite') ||
-        messageLower.includes('help me')) {
-      urgency = 'high';
-    } else if (messageLower.includes('snake') || 
-               messageLower.includes('rescue') ||
-               messageLower.includes('leopard') ||
-               messageLower.includes('bear')) {
-      urgency = 'medium';
-    }
-
-    // Detect species
+    // Detect species first
     let speciesGuess = 'unknown';
     let confidence = 0.3;
+    let detectedSpecies = null;
 
     if (speciesData) {
       for (const species of speciesData) {
@@ -67,6 +53,7 @@ serve(async (req) => {
         if (messageLower.includes(commonName) || 
             (scientificName && messageLower.includes(scientificName))) {
           speciesGuess = species.common_name;
+          detectedSpecies = species;
           confidence = 0.8;
           break;
         }
@@ -75,12 +62,36 @@ serve(async (req) => {
         for (const keyword of keywords) {
           if (messageLower.includes(keyword.toLowerCase())) {
             speciesGuess = species.common_name;
+            detectedSpecies = species;
             confidence = 0.6;
             break;
           }
         }
         
         if (speciesGuess !== 'unknown') break;
+      }
+    }
+
+    // Detect urgency based on species risk level or message context
+    let urgency = 'low';
+    if (detectedSpecies && detectedSpecies.risk_level) {
+      // Use species risk level for urgency
+      const riskLevel = detectedSpecies.risk_level.toLowerCase();
+      if (riskLevel === 'high' || riskLevel === 'critical') {
+        urgency = 'high';
+      } else if (riskLevel === 'medium' || riskLevel === 'moderate') {
+        urgency = 'medium';
+      } else {
+        urgency = 'low';
+      }
+    } else {
+      // Fallback to message context if no species detected
+      if (messageLower.includes('emergency') || 
+          messageLower.includes('urgent') || 
+          messageLower.includes('attack') || 
+          messageLower.includes('bite') ||
+          messageLower.includes('help me')) {
+        urgency = 'high';
       }
     }
 
@@ -97,7 +108,9 @@ serve(async (req) => {
       urgency,
       intent,
       confidence,
-      reasoning: `Detected ${urgency} urgency situation involving ${speciesGuess}`
+      reasoning: detectedSpecies ? 
+        `Detected ${urgency} urgency situation involving ${speciesGuess} (Risk Level: ${detectedSpecies.risk_level})` :
+        `Detected ${urgency} urgency situation involving ${speciesGuess}`
     };
 
     // Get safety guidelines for identified species
@@ -108,64 +121,26 @@ serve(async (req) => {
       );
     }
 
-    // Generate comprehensive response
+    // Generate concise response for chat (3-4 lines)
     let response = '';
     
     if (urgency === 'high') {
-      response = '🚨 **URGENT EMERGENCY**: This is a high-risk situation. ';
-      if (speciesGuess !== 'unknown') {
-        response += `You've encountered a ${speciesGuess}. `;
-        
-        // Add specific emergency dos and don'ts
-        if (safetyGuidelines) {
-          response += '\n\n**IMMEDIATE SAFETY ACTIONS:**\n';
-          if (safetyGuidelines.dos) {
-            response += `✅ **DO**: ${safetyGuidelines.dos}\n`;
-          }
-          if (safetyGuidelines.donts) {
-            response += `❌ **DON'T**: ${safetyGuidelines.donts}\n`;
-          }
-          if (safetyGuidelines.first_aid) {
-            response += `🏥 **FIRST AID**: ${safetyGuidelines.first_aid}\n`;
-          }
-        }
-      }
-      response += '\n🆘 **Contact emergency services immediately!**';
+      response = `🚨 **HIGH RISK ALERT**: You've encountered a **${speciesGuess}** - this is a dangerous situation.\n`;
+      response += `${detectedSpecies ? `Risk Level: ${detectedSpecies.risk_level}. ` : ''}Stay calm, maintain maximum distance, and contact emergency services immediately.\n`;
+      response += `Check the safety panel for detailed emergency protocols and first aid information.`;
       
     } else if (speciesGuess !== 'unknown') {
-      response = `I've identified this as likely involving a **${speciesGuess}**. `;
-      
-      if (urgency === 'medium') {
-        response += 'This requires caution. ';
+      response = `🐾 **${speciesGuess}** identified - ${detectedSpecies ? `Risk Level: ${detectedSpecies.risk_level}` : 'Caution advised'}.\n`;
+      if (detectedSpecies?.scientific_name) {
+        response += `*${detectedSpecies.scientific_name}* - `;
       }
-      
-      // Add comprehensive safety guidelines
-      if (safetyGuidelines) {
-        response += '\n\n**SAFETY GUIDELINES:**\n';
-        if (safetyGuidelines.dos) {
-          response += `✅ **What to DO**: ${safetyGuidelines.dos}\n\n`;
-        }
-        if (safetyGuidelines.donts) {
-          response += `❌ **What NOT to do**: ${safetyGuidelines.donts}\n\n`;
-        }
-        if (safetyGuidelines.first_aid) {
-          response += `🏥 **First Aid**: ${safetyGuidelines.first_aid}\n\n`;
-        }
-        if (safetyGuidelines.authority_notes) {
-          response += `📋 **Important Notes**: ${safetyGuidelines.authority_notes}`;
-        }
-      } else {
-        response += 'Please maintain a safe distance and contact local wildlife authorities for guidance.';
-      }
+      response += `${urgency === 'medium' ? 'Exercise caution and ' : ''}maintain safe distance and avoid sudden movements.\n`;
+      response += `Detailed safety guidelines and nearby rescue contacts are available in the side panels.`;
       
     } else {
-      response = 'I understand you have a wildlife-related query. While I couldn\'t identify the specific species, I can provide general wildlife safety advice.\n\n';
-      response += '🛡️ **General Safety Tips:**\n';
-      response += '• Maintain a safe distance from any wild animal\n';
-      response += '• Do not attempt to feed or approach the animal\n';
-      response += '• Make yourself appear larger and back away slowly\n';
-      response += '• Contact local wildlife authorities for assistance\n\n';
-      response += 'Please provide more details about the animal (size, color, behavior) for specific guidance.';
+      response = `🔍 **Species not identified** - Please provide more details (size, color, behavior, location).\n`;
+      response += `Meanwhile, maintain safe distance from any wild animal and avoid direct contact.\n`;
+      response += `General safety guidelines are shown in the safety panel on the right.`;
     }
 
     console.log('Generated classification:', classification);
