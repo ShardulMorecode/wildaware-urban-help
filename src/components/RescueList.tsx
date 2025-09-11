@@ -67,6 +67,11 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
     console.log('Filtering orgs. UserCity:', userCity, 'Total orgs:', rescueOrgs.length);
     let filtered = rescueOrgs;
 
+    // If no classification yet, return empty array to show prompt message
+    if (!classification || classification.speciesGuess === 'unknown') {
+      return [];
+    }
+
     // Filter by state/district if userCity provided  
     if (userCity && userCity.trim()) {
       const cityLower = userCity.toLowerCase().trim();
@@ -86,23 +91,20 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
       console.log('After city filter:', filtered.length);
     }
 
-    // Filter by species if classification is available
-    if (classification && classification.speciesGuess !== 'unknown') {
-      console.log('Filtering by species:', classification.speciesGuess);
+    // Always show organizations that support wildlife in general
+    // Don't filter too strictly by species to ensure organizations show up
+    filtered = filtered.filter(org => {
+      const supportsWildlife = org.species_supported?.includes('wildlife') || 
+                              org.species_supported?.includes('all') ||
+                              org.species_supported?.length === 0; // If no specific species, assume they help with all
       
-      const beforeCount = filtered.length;
-      filtered = filtered.filter(org => {
-        const supportsSpecies = org.species_supported?.some(species => 
-          species.toLowerCase().includes(classification.speciesGuess.toLowerCase()) ||
-          classification.speciesGuess.toLowerCase().includes(species.toLowerCase())
-        );
-        const supportsWildlife = org.species_supported?.includes('wildlife');
-        
-        return supportsSpecies || supportsWildlife;
-      });
+      const supportsSpecies = org.species_supported?.some(species => 
+        species.toLowerCase().includes(classification.speciesGuess.toLowerCase()) ||
+        classification.speciesGuess.toLowerCase().includes(species.toLowerCase())
+      );
       
-      console.log(`Species filter: ${beforeCount} -> ${filtered.length}`);
-    }
+      return supportsSpecies || supportsWildlife;
+    });
 
     // Sort by relevance: type (Government first), then by district match
     return filtered.sort((a, b) => {
