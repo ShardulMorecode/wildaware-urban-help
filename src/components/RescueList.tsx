@@ -220,28 +220,63 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
                   ))}
                 </div>
 
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant={classification?.urgency === 'high' ? 'emergency' : 'rescue'}
-                    onClick={() => handleCall(org.phone, org.name)}
-                    className="flex-1"
-                  >
-                    <Phone className="w-4 h-4 mr-2" />
-                    Call
-                  </Button>
+                <div className="space-y-2">
+                  {/* Contact Information */}
+                  <div className="text-xs space-y-1">
+                    {org.phone && (
+                      <div className="flex items-center gap-1">
+                        <Phone className="w-3 h-3" />
+                        <span>{org.phone}</span>
+                      </div>
+                    )}
+                    {org.whatsapp && (
+                      <div className="flex items-center gap-1">
+                        <MessageCircle className="w-3 h-3" />
+                        <span>{org.whatsapp}</span>
+                      </div>
+                    )}
+                    {org.email && (
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs">📧</span>
+                        <span>{org.email}</span>
+                      </div>
+                    )}
+                  </div>
                   
-                  {org.whatsapp && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleWhatsApp(org.whatsapp!, org.name)}
-                      className="flex-1"
-                    >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      WhatsApp
-                    </Button>
-                  )}
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    {org.phone ? (
+                      <Button
+                        size="sm"
+                        variant={classification?.urgency === 'high' ? 'default' : 'default'}
+                        onClick={() => handleCall(org.phone, org.name)}
+                        className="flex-1"
+                      >
+                        <Phone className="w-4 h-4 mr-2" />
+                        Call
+                      </Button>
+                    ) : (
+                      <div className="flex-1 text-xs text-muted-foreground text-center py-2">
+                        Phone unavailable
+                      </div>
+                    )}
+                    
+                    {org.whatsapp ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleWhatsApp(org.whatsapp!, org.name)}
+                        className="flex-1"
+                      >
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        WhatsApp
+                      </Button>
+                    ) : (
+                      <div className="flex-1 text-xs text-muted-foreground text-center py-2">
+                        WhatsApp unavailable
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </Card>

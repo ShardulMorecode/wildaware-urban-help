@@ -19,7 +19,25 @@ const Chat = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [currentClassification, setCurrentClassification] = useState<ClassificationResult | undefined>();
-  const [userCity] = useState(() => localStorage.getItem('wildaware-city') || '');
+  const [userCity, setUserCity] = useState(() => localStorage.getItem('wildaware-city') || '');
+
+  // Listen for city changes in localStorage
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const newCity = localStorage.getItem('wildaware-city') || '';
+      setUserCity(newCity);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check periodically for changes made in the same tab
+    const interval = setInterval(handleStorageChange, 1000);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) {
