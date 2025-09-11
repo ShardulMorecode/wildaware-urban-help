@@ -168,7 +168,7 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
         )}
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 overflow-hidden">
         {loading ? (
           <div className="text-center py-6">
             <div className="w-8 h-8 mx-auto mb-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -197,7 +197,8 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
             </Button>
           </div>
         ) : (
-          filteredOrgs.map((org) => (
+          <div className="max-h-80 overflow-y-auto space-y-3 pr-2">
+            {filteredOrgs.map((org) => (
             <Card key={org.id} className="p-4 hover:shadow-card transition-smooth">
               <div className="space-y-3">
                 <div className="flex items-start justify-between">
@@ -293,8 +294,9 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
                   </div>
                 </div>
               </div>
-            </Card>
-          ))
+              </Card>
+            ))}
+          </div>
         )}
 
         {userCity && filteredOrgs.length > 0 && (

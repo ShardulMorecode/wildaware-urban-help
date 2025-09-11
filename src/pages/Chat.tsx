@@ -91,12 +91,12 @@ const Chat = () => {
           {/* Sidebar - 40% */}
           <div className="lg:col-span-2 space-y-3">
             {/* Safety Panel */}
-            <div className="h-[45%]">
+            <div className="h-[48%]">
               <SafetyPanel classification={currentClassification} />
             </div>
 
             {/* Rescue Organizations */}
-            <div className="h-[45%]">
+            <div className="h-[48%]">
               <RescueList 
                 classification={currentClassification} 
                 userCity={userCity}
