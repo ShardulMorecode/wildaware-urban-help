@@ -67,11 +67,6 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
     console.log('Filtering orgs. UserCity:', userCity, 'Total orgs:', rescueOrgs.length);
     let filtered = rescueOrgs;
 
-    // If no classification yet, return empty array to show prompt message
-    if (!classification || classification.speciesGuess === 'unknown') {
-      return [];
-    }
-
     // Filter by state/district if userCity provided  
     if (userCity && userCity.trim()) {
       const cityLower = userCity.toLowerCase().trim();
@@ -90,21 +85,6 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
       
       console.log('After city filter:', filtered.length);
     }
-
-    // Always show organizations that support wildlife in general
-    // Don't filter too strictly by species to ensure organizations show up
-    filtered = filtered.filter(org => {
-      const supportsWildlife = org.species_supported?.includes('wildlife') || 
-                              org.species_supported?.includes('all') ||
-                              org.species_supported?.length === 0; // If no specific species, assume they help with all
-      
-      const supportsSpecies = org.species_supported?.some(species => 
-        species.toLowerCase().includes(classification.speciesGuess.toLowerCase()) ||
-        classification.speciesGuess.toLowerCase().includes(species.toLowerCase())
-      );
-      
-      return supportsSpecies || supportsWildlife;
-    });
 
     // Sort by relevance: type (Government first), then by district match
     return filtered.sort((a, b) => {
@@ -194,11 +174,11 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
             <div className="w-8 h-8 mx-auto mb-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
             <p className="text-sm text-muted-foreground">Loading rescue organizations...</p>
           </div>
-        ) : !classification || classification.speciesGuess === 'unknown' ? (
+        ) : !userCity || userCity.trim() === '' ? (
           <div className="text-center py-6">
             <Phone className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
             <p className="text-sm text-muted-foreground">
-              Describe your wildlife encounter in the chat to get local rescue contacts.
+              Enter your city in the header to see local rescue contacts.
             </p>
           </div>
         ) : filteredOrgs.length === 0 ? (
