@@ -157,7 +157,7 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-lg">
           <Phone className="w-5 h-5 text-primary" />
           Nearby Help
         </CardTitle>
