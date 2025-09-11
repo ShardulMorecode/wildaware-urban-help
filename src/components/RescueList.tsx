@@ -197,7 +197,7 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
             </Button>
           </div>
         ) : (
-          <div className="max-h-80 overflow-y-auto space-y-3 pr-2">
+          <div className="max-h-80 overflow-y-auto space-y-3 pr-1 -mr-4 pr-4 scrollbar-thin scrollbar-thumb-border scrollbar-track-background">
             {filteredOrgs.map((org) => (
             <Card key={org.id} className="p-4 hover:shadow-card transition-smooth">
               <div className="space-y-3">
