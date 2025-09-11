@@ -212,47 +212,47 @@ const SafetyPanel = ({ classification }: SafetyPanelProps) => {
         </p>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         {/* Immediate DO's */}
-        <div className="space-y-3">
-          <h4 className="font-semibold text-success flex items-center gap-2">
+        <div className="space-y-2">
+          <h4 className="font-semibold text-success flex items-center gap-2 text-sm">
             <CheckCircle className="w-4 h-4" />
             Immediate DO's
           </h4>
-          <div className="text-sm bg-success/10 p-3 rounded-xl">
+          <div className="text-xs bg-success/10 p-2 rounded-lg">
             {Array.isArray(safetyGuidelines.dos) ? safetyGuidelines.dos.join('. ') : safetyGuidelines.dos}
           </div>
         </div>
 
         {/* DON'Ts */}
-        <div className="space-y-3">
-          <h4 className="font-semibold text-destructive flex items-center gap-2">
+        <div className="space-y-2">
+          <h4 className="font-semibold text-destructive flex items-center gap-2 text-sm">
             <XCircle className="w-4 h-4" />
             DON'T Do These
           </h4>
-          <div className="text-sm bg-destructive/10 p-3 rounded-xl">
+          <div className="text-xs bg-destructive/10 p-2 rounded-lg">
             {Array.isArray(safetyGuidelines.donts) ? safetyGuidelines.donts.join('. ') : safetyGuidelines.donts}
           </div>
         </div>
 
         {/* First Aid */}
-        <div className="space-y-3">
-          <h4 className="font-semibold text-info flex items-center gap-2">
+        <div className="space-y-2">
+          <h4 className="font-semibold text-info flex items-center gap-2 text-sm">
             <Heart className="w-4 h-4" />
             First Aid
           </h4>
-          <div className="text-sm bg-info/10 p-3 rounded-xl">
+          <div className="text-xs bg-info/10 p-2 rounded-lg">
             {safetyGuidelines.first_aid}
           </div>
         </div>
 
         {/* Authority Notes */}
         {safetyGuidelines.authority_notes && (
-          <div className="space-y-3">
+          <div className="space-y-2">
             <h4 className="font-semibold text-muted-foreground text-xs uppercase tracking-wide">
               Important Notes
             </h4>
-            <p className="text-sm text-muted-foreground bg-muted p-3 rounded-xl">
+            <p className="text-xs text-muted-foreground bg-muted p-2 rounded-lg">
               {safetyGuidelines.authority_notes}
             </p>
           </div>

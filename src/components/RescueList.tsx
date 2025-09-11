@@ -192,7 +192,7 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
             <div className="w-8 h-8 mx-auto mb-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
             <p className="text-sm text-muted-foreground">Loading rescue organizations...</p>
           </div>
-        ) : !classification ? (
+        ) : !classification || classification.speciesGuess === 'unknown' ? (
           <div className="text-center py-6">
             <Phone className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
             <p className="text-sm text-muted-foreground">
@@ -203,11 +203,11 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
           <div className="text-center py-6">
             <Phone className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
             <p className="text-sm text-muted-foreground mb-4">
-              No local rescuers found. Try the state helpline or nearest district.
+              No local rescuers found for {userCity || 'your area'}. Try the state helpline.
             </p>
             <Button 
               variant="outline" 
-              onClick={() => handleCall('1800-425-4733', 'Kerala State Helpline')}
+              onClick={() => handleCall('1800-425-4733', 'State Helpline')}
               className="w-full"
             >
               <Phone className="w-4 h-4 mr-2" />
