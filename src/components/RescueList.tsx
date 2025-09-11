@@ -192,6 +192,13 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
             <div className="w-8 h-8 mx-auto mb-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
             <p className="text-sm text-muted-foreground">Loading rescue organizations...</p>
           </div>
+        ) : !classification ? (
+          <div className="text-center py-6">
+            <Phone className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+            <p className="text-sm text-muted-foreground">
+              Describe your wildlife encounter in the chat to get local rescue contacts.
+            </p>
+          </div>
         ) : filteredOrgs.length === 0 ? (
           <div className="text-center py-6">
             <Phone className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />

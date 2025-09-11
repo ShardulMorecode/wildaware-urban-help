@@ -69,9 +69,9 @@ const Chat = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-4">
-        <div className="grid lg:grid-cols-7 gap-4 h-[calc(100vh-100px)]">
-          {/* Chat Area - 70% */}
-          <div className="lg:col-span-5">
+        <div className="grid lg:grid-cols-5 gap-4 h-[calc(100vh-100px)]">
+          {/* Chat Area - 60% */}
+          <div className="lg:col-span-3">
             <Card className="h-full flex flex-col shadow-card">
               <div className="p-3 border-b">
                 <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -88,7 +88,7 @@ const Chat = () => {
             </Card>
           </div>
 
-          {/* Sidebar - 30% */}
+          {/* Sidebar - 40% */}
           <div className="lg:col-span-2 space-y-3">
             {/* Safety Panel */}
             <div className="h-[45%]">
