@@ -173,7 +173,7 @@ const SafetyPanel = ({ classification }: SafetyPanelProps) => {
   const styles = getUrgencyStyles(classification.urgency);
 
   return (
-    <Card className={`h-full ${styles.border} border-2`}>
+    <Card className={`h-full flex flex-col ${styles.border} border-2`}>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
@@ -189,7 +189,7 @@ const SafetyPanel = ({ classification }: SafetyPanelProps) => {
         </p>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 flex-1 overflow-y-auto">
         {/* Immediate DO's */}
         <div className="space-y-2">
           <h4 className="font-semibold text-success flex items-center gap-2 text-sm">
