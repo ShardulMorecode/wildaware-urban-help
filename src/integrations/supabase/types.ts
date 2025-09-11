@@ -58,45 +58,39 @@ export type Database = {
       }
       rescue_orgs: {
         Row: {
-          created_at: string
           district: string | null
           email: string | null
           id: string
           name: string
           phone: string | null
           source_url: string | null
-          species_supported: string[] | null
-          state: string | null
+          species_supported: string[]
+          state: string
           type: string | null
-          updated_at: string
           whatsapp: string | null
         }
         Insert: {
-          created_at?: string
           district?: string | null
           email?: string | null
           id?: string
           name: string
           phone?: string | null
           source_url?: string | null
-          species_supported?: string[] | null
-          state?: string | null
+          species_supported: string[]
+          state: string
           type?: string | null
-          updated_at?: string
           whatsapp?: string | null
         }
         Update: {
-          created_at?: string
           district?: string | null
           email?: string | null
           id?: string
           name?: string
           phone?: string | null
           source_url?: string | null
-          species_supported?: string[] | null
-          state?: string | null
+          species_supported?: string[]
+          state?: string
           type?: string | null
-          updated_at?: string
           whatsapp?: string | null
         }
         Relationships: []
@@ -104,93 +98,71 @@ export type Database = {
       safety_guidelines: {
         Row: {
           authority_notes: string | null
-          authority_to_contact: string | null
-          created_at: string
-          donts: string[] | null
-          dos: string[] | null
+          donts: string
+          dos: string
           first_aid: string | null
           id: string
-          situation: string
           source_url: string | null
-          species_common_name: string | null
-          updated_at: string
+          species_common_name: string
+          species_id: string | null
         }
         Insert: {
           authority_notes?: string | null
-          authority_to_contact?: string | null
-          created_at?: string
-          donts?: string[] | null
-          dos?: string[] | null
+          donts: string
+          dos: string
           first_aid?: string | null
           id?: string
-          situation: string
           source_url?: string | null
-          species_common_name?: string | null
-          updated_at?: string
+          species_common_name: string
+          species_id?: string | null
         }
         Update: {
           authority_notes?: string | null
-          authority_to_contact?: string | null
-          created_at?: string
-          donts?: string[] | null
-          dos?: string[] | null
+          donts?: string
+          dos?: string
           first_aid?: string | null
           id?: string
-          situation?: string
           source_url?: string | null
-          species_common_name?: string | null
-          updated_at?: string
+          species_common_name?: string
+          species_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "safety_guidelines_species_id_fkey"
+            columns: ["species_id"]
+            isOneToOne: false
+            referencedRelation: "species"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       species: {
         Row: {
-          behaviour: string | null
-          category: string | null
           common_name: string
-          created_at: string
-          description: string | null
-          dos_donts: string | null
           id: string
           image_ref: string | null
-          image_url: string | null
-          keywords: string[] | null
-          risk_level: string | null
-          scientific_name: string | null
+          keywords: string[]
+          risk_level: string
+          scientific_name: string
           source_url: string | null
-          updated_at: string
         }
         Insert: {
-          behaviour?: string | null
-          category?: string | null
           common_name: string
-          created_at?: string
-          description?: string | null
-          dos_donts?: string | null
           id?: string
           image_ref?: string | null
-          image_url?: string | null
-          keywords?: string[] | null
-          risk_level?: string | null
-          scientific_name?: string | null
+          keywords: string[]
+          risk_level: string
+          scientific_name: string
           source_url?: string | null
-          updated_at?: string
         }
         Update: {
-          behaviour?: string | null
-          category?: string | null
           common_name?: string
-          created_at?: string
-          description?: string | null
-          dos_donts?: string | null
           id?: string
           image_ref?: string | null
-          image_url?: string | null
-          keywords?: string[] | null
-          risk_level?: string | null
-          scientific_name?: string | null
+          keywords?: string[]
+          risk_level?: string
+          scientific_name?: string
           source_url?: string | null
-          updated_at?: string
         }
         Relationships: []
       }

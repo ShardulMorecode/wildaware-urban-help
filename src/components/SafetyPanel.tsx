@@ -46,9 +46,11 @@ const SafetyPanel = ({ classification }: SafetyPanelProps) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Reset state when classification changes
+    setSafetyGuidelines(null);
+    setSpeciesData(null);
+    
     if (!classification || classification.speciesGuess === 'unknown') {
-      setSafetyGuidelines(null);
-      setSpeciesData(null);
       return;
     }
 

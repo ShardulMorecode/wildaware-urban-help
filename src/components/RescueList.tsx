@@ -119,6 +119,8 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
   };
 
   const filteredOrgs = filterRescueOrgs().slice(0, 3); // Show top 3
+  
+  console.log('Final filtered orgs:', filteredOrgs.length, filteredOrgs.map(o => ({name: o.name, city: userCity})));
 
   const handleCall = (phone: string, orgName?: string) => {
     // Log the activity
