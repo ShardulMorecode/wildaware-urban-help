@@ -55,12 +55,16 @@ const SafetyPanel = ({ classification }: SafetyPanelProps) => {
     const fetchGuidelines = async () => {
       setLoading(true);
       try {
-        // Fetch species data
+        console.log('Fetching data for species:', classification.speciesGuess);
+        
+        // Fetch species data first
         const { data: speciesResult, error: speciesError } = await supabase
           .from('species')
           .select('*')
-          .ilike('common_name', classification.speciesGuess)
+          .eq('common_name', classification.speciesGuess)
           .single();
+
+        console.log('Species result:', speciesResult, 'Error:', speciesError);
 
         if (speciesError && speciesError.code !== 'PGRST116') {
           console.error('Error fetching species:', speciesError);
@@ -69,12 +73,14 @@ const SafetyPanel = ({ classification }: SafetyPanelProps) => {
         if (speciesResult) {
           setSpeciesData(speciesResult);
           
-          // Fetch safety guidelines
+          // Fetch safety guidelines using exact match
           const { data: guidelinesResult, error: guidelinesError } = await supabase
             .from('safety_guidelines')
             .select('*')
-            .ilike('species_common_name', classification.speciesGuess)
+            .eq('species_common_name', classification.speciesGuess)
             .single();
+
+          console.log('Guidelines result:', guidelinesResult, 'Error:', guidelinesError);
 
           if (guidelinesError && guidelinesError.code !== 'PGRST116') {
             console.error('Error fetching guidelines:', guidelinesError);
@@ -82,6 +88,17 @@ const SafetyPanel = ({ classification }: SafetyPanelProps) => {
 
           if (guidelinesResult) {
             setSafetyGuidelines(guidelinesResult as SafetyGuideline);
+          } else {
+            // Try alternative search if exact match fails
+            const { data: altGuidelines, error: altError } = await supabase
+              .from('safety_guidelines')
+              .select('*')
+              .ilike('species_common_name', `%${classification.speciesGuess}%`)
+              .limit(1);
+            
+            if (altGuidelines && altGuidelines.length > 0) {
+              setSafetyGuidelines(altGuidelines[0] as SafetyGuideline);
+            }
           }
         }
       } catch (error) {

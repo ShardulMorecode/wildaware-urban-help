@@ -40,9 +40,12 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
   useEffect(() => {
     const fetchRescueOrgs = async () => {
       try {
+        console.log('Fetching rescue orgs...');
         const { data, error } = await supabase
           .from('rescue_orgs')
           .select('*');
+        
+        console.log('Rescue orgs data:', data, 'Error:', error);
         
         if (error) {
           console.error('Error fetching rescue orgs:', error);
@@ -60,25 +63,44 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
   }, []);
 
   const filterRescueOrgs = (): RescueOrg[] => {
+    console.log('Filtering orgs. UserCity:', userCity, 'Total orgs:', rescueOrgs.length);
     let filtered = rescueOrgs;
 
     // Filter by state/district if userCity provided  
-    if (userCity) {
-      filtered = filtered.filter(org => 
-        org.state?.toLowerCase().includes(userCity.toLowerCase()) ||
-        org.district?.toLowerCase().includes(userCity.toLowerCase()) ||
-        org.name?.toLowerCase().includes(userCity.toLowerCase())
-      );
+    if (userCity && userCity.trim()) {
+      const cityLower = userCity.toLowerCase().trim();
+      console.log('Filtering by city:', cityLower);
+      
+      filtered = filtered.filter(org => {
+        const stateMatch = org.state?.toLowerCase().includes(cityLower);
+        const districtMatch = org.district?.toLowerCase().includes(cityLower);
+        const nameMatch = org.name?.toLowerCase().includes(cityLower);
+        
+        console.log(`Org: ${org.name}, State: ${org.state}, District: ${org.district}`, 
+                   'Matches:', { stateMatch, districtMatch, nameMatch });
+        
+        return stateMatch || districtMatch || nameMatch;
+      });
+      
+      console.log('After city filter:', filtered.length);
     }
 
     // Filter by species if classification is available
     if (classification && classification.speciesGuess !== 'unknown') {
-      filtered = filtered.filter(org =>
-        org.species_supported?.some(species => 
+      console.log('Filtering by species:', classification.speciesGuess);
+      
+      const beforeCount = filtered.length;
+      filtered = filtered.filter(org => {
+        const supportsSpecies = org.species_supported?.some(species => 
           species.toLowerCase().includes(classification.speciesGuess.toLowerCase()) ||
           classification.speciesGuess.toLowerCase().includes(species.toLowerCase())
-        ) || org.species_supported?.includes('wildlife')
-      );
+        );
+        const supportsWildlife = org.species_supported?.includes('wildlife');
+        
+        return supportsSpecies || supportsWildlife;
+      });
+      
+      console.log(`Species filter: ${beforeCount} -> ${filtered.length}`);
     }
 
     // Sort by relevance: type (Government first), then by district match
