@@ -39,6 +39,7 @@ const RescueList = ({ classification, userCity }: RescueListProps) => {
 
   useEffect(() => {
     const fetchRescueOrgs = async () => {
+      setLoading(true);
       try {
         console.log('Fetching rescue orgs...');
         const { data, error } = await supabase

@@ -62,12 +62,13 @@ const SafetyPanel = ({ classification }: SafetyPanelProps) => {
           .from('species')
           .select('*')
           .eq('common_name', classification.speciesGuess)
-          .single();
+          .maybeSingle();
 
         console.log('Species result:', speciesResult, 'Error:', speciesError);
 
-        if (speciesError && speciesError.code !== 'PGRST116') {
+        if (speciesError) {
           console.error('Error fetching species:', speciesError);
+          return;
         }
 
         if (speciesResult) {
@@ -78,27 +79,17 @@ const SafetyPanel = ({ classification }: SafetyPanelProps) => {
             .from('safety_guidelines')
             .select('*')
             .eq('species_common_name', classification.speciesGuess)
-            .single();
+            .maybeSingle();
 
           console.log('Guidelines result:', guidelinesResult, 'Error:', guidelinesError);
 
-          if (guidelinesError && guidelinesError.code !== 'PGRST116') {
+          if (guidelinesError) {
             console.error('Error fetching guidelines:', guidelinesError);
+            return;
           }
 
           if (guidelinesResult) {
             setSafetyGuidelines(guidelinesResult as SafetyGuideline);
-          } else {
-            // Try alternative search if exact match fails
-            const { data: altGuidelines, error: altError } = await supabase
-              .from('safety_guidelines')
-              .select('*')
-              .ilike('species_common_name', `%${classification.speciesGuess}%`)
-              .limit(1);
-            
-            if (altGuidelines && altGuidelines.length > 0) {
-              setSafetyGuidelines(altGuidelines[0] as SafetyGuideline);
-            }
           }
         }
       } catch (error) {
