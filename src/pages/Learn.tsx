@@ -93,6 +93,15 @@ const Learn = () => {
   const getSpeciesImage = (speciesName: string, imageRef?: string) => {
     // First priority: use the database image reference (Wikipedia commons)
     if (imageRef) {
+      // Convert Wikipedia file page URLs to direct image URLs
+      if (imageRef.includes('en.wikipedia.org/wiki/File:')) {
+        const fileName = imageRef.split('File:')[1];
+        return `https://upload.wikimedia.org/wikipedia/commons/thumb/${fileName.slice(0, 1)}/${fileName.slice(0, 2)}/${fileName}/800px-${fileName}`;
+      }
+      // For direct Wikipedia commons URLs, use as-is
+      if (imageRef.includes('upload.wikimedia.org')) {
+        return imageRef;
+      }
       return imageRef;
     }
     
