@@ -8,6 +8,21 @@ import { supabase } from '@/integrations/supabase/client';
 import snakeImage from '@/assets/snake.jpg';
 import monkeyImage from '@/assets/monkey.jpg';
 import dogImage from '@/assets/dog.jpg';
+import asianElephantImage from '@/assets/asian-elephant.jpg';
+import asianPalmCivetImage from '@/assets/asian-palm-civet.jpg';
+import asiaticLionImage from '@/assets/asiatic-lion.jpg';
+import bengalTigerImage from '@/assets/bengal-tiger.jpg';
+import bonnetMacaqueImage from '@/assets/bonnet-macaque.jpg';
+import commonKraitImage from '@/assets/common-krait.jpg';
+import indianCobraImage from '@/assets/indian-cobra.jpg';
+import kingCobraImage from '@/assets/king-cobra.jpg';
+import indianLeopardImage from '@/assets/indian-leopard.jpg';
+import indianFlyingFoxImage from '@/assets/indian-flying-fox.jpg';
+import indianPeacockImage from '@/assets/indian-peacock.jpg';
+import indianRockPythonImage from '@/assets/indian-rock-python.jpg';
+import indianMonitorImage from '@/assets/indian-monitor.jpg';
+import indianStarTortoiseImage from '@/assets/indian-star-tortoise.jpg';
+import redPandaImage from '@/assets/red-panda.jpg';
 
 interface Species {
   id: string;
@@ -77,9 +92,29 @@ const Learn = () => {
   
   const getSpeciesImage = (speciesName: string) => {
     const name = speciesName.toLowerCase();
-    if (name.includes('snake') || name.includes('krait') || name.includes('cobra')) return snakeImage;
+    
+    // Specific species mappings
+    if (name.includes('asian elephant')) return asianElephantImage;
+    if (name.includes('asian palm civet')) return asianPalmCivetImage;
+    if (name.includes('asiatic lion')) return asiaticLionImage;
+    if (name.includes('bengal tiger')) return bengalTigerImage;
+    if (name.includes('bonnet macaque')) return bonnetMacaqueImage;
+    if (name.includes('common krait')) return commonKraitImage;
+    if (name.includes('indian cobra')) return indianCobraImage;
+    if (name.includes('king cobra')) return kingCobraImage;
+    if (name.includes('indian leopard')) return indianLeopardImage;
+    if (name.includes('indian flying fox')) return indianFlyingFoxImage;
+    if (name.includes('indian peacock')) return indianPeacockImage;
+    if (name.includes('indian rock python')) return indianRockPythonImage;
+    if (name.includes('indian monitor') || name.includes('bengal monitor')) return indianMonitorImage;
+    if (name.includes('indian star tortoise')) return indianStarTortoiseImage;
+    if (name.includes('red panda')) return redPandaImage;
+    
+    // Generic fallbacks
+    if (name.includes('snake') || name.includes('krait') || name.includes('cobra') || name.includes('python')) return snakeImage;
     if (name.includes('monkey') || name.includes('macaque') || name.includes('langur')) return monkeyImage;
     if (name.includes('dog') || name.includes('stray')) return dogImage;
+    
     return '/placeholder.svg';
   };
 
@@ -122,7 +157,7 @@ const Learn = () => {
                 <img 
                   src={selectedSpecies.image_ref || getSpeciesImage(selectedSpecies.common_name)}
                   alt={`${selectedSpecies.common_name} in natural habitat`}
-                  className="w-full h-48 object-cover rounded-xl"
+                  className="w-full h-64 object-cover rounded-xl"
                 />
                 <p className="text-sm text-muted-foreground">
                   Scientific name: <span className="italic">{selectedSpecies.scientific_name}</span>
@@ -246,7 +281,7 @@ const Learn = () => {
                     <img 
                       src={speciesItem.image_ref || getSpeciesImage(speciesItem.common_name)}
                       alt={`${speciesItem.common_name} information card`}
-                      className="w-full h-40 object-cover group-hover:scale-105 transition-smooth"
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-smooth"
                     />
                     <div className="absolute top-2 right-2">
                       <Badge className={getRiskColor(speciesItem.risk_level)}>
