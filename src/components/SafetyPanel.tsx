@@ -59,28 +59,34 @@ const SafetyPanel = ({ classification }: SafetyPanelProps) => {
       try {
         console.log('Fetching data for species:', classification.speciesGuess);
         
-        // Fetch species data first
-        const { data: speciesResult, error: speciesError } = await supabase
+        // Try to find species by common name or scientific name
+        const { data: speciesResults, error: speciesError } = await supabase
           .from('species')
           .select('*')
-          .eq('common_name', classification.speciesGuess)
-          .maybeSingle();
+          .or(`common_name.ilike.%${classification.speciesGuess}%,scientific_name.ilike.%${classification.speciesGuess}%`);
 
-        console.log('Species result:', speciesResult, 'Error:', speciesError);
+        console.log('Species results:', speciesResults, 'Error:', speciesError);
 
         if (speciesError) {
           console.error('Error fetching species:', speciesError);
           return;
         }
 
-        if (speciesResult) {
-          setSpeciesData(speciesResult);
+        let matchedSpecies = null;
+        if (speciesResults && speciesResults.length > 0) {
+          // Find exact match first, then fallback to partial match
+          matchedSpecies = speciesResults.find(s => 
+            s.common_name.toLowerCase() === classification.speciesGuess.toLowerCase() ||
+            s.scientific_name.toLowerCase() === classification.speciesGuess.toLowerCase()
+          ) || speciesResults[0];
           
-          // Fetch safety guidelines using exact match
+          setSpeciesData(matchedSpecies);
+          
+          // Fetch safety guidelines using the matched species common name
           const { data: guidelinesResult, error: guidelinesError } = await supabase
             .from('safety_guidelines')
             .select('*')
-            .eq('species_common_name', classification.speciesGuess)
+            .eq('species_common_name', matchedSpecies.common_name)
             .maybeSingle();
 
           console.log('Guidelines result:', guidelinesResult, 'Error:', guidelinesError);
