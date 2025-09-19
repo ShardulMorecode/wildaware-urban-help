@@ -96,7 +96,10 @@ const Learn = () => {
       // Convert Wikipedia file page URLs to direct image URLs
       if (imageRef.includes('en.wikipedia.org/wiki/File:')) {
         const fileName = imageRef.split('File:')[1];
-        return `https://upload.wikimedia.org/wikipedia/commons/thumb/${fileName.slice(0, 1)}/${fileName.slice(0, 2)}/${fileName}/800px-${fileName}`;
+        // Create proper Wikipedia Commons URL structure
+        const firstChar = fileName.charAt(0);
+        const firstTwoChars = fileName.substring(0, 2);
+        return `https://upload.wikimedia.org/wikipedia/commons/thumb/${firstChar}/${firstTwoChars}/${fileName}/800px-${fileName}`;
       }
       // For direct Wikipedia commons URLs, use as-is
       if (imageRef.includes('upload.wikimedia.org')) {
