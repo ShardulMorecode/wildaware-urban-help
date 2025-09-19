@@ -91,26 +91,9 @@ const Learn = () => {
   };
   
   const getSpeciesImage = (speciesName: string, imageRef?: string) => {
-    // First priority: use the database image reference (Wikipedia commons)
-    if (imageRef) {
-      // Convert Wikipedia file page URLs to direct image URLs
-      if (imageRef.includes('en.wikipedia.org/wiki/File:')) {
-        const fileName = imageRef.split('File:')[1];
-        // Create proper Wikipedia Commons URL structure
-        const firstChar = fileName.charAt(0);
-        const firstTwoChars = fileName.substring(0, 2);
-        return `https://upload.wikimedia.org/wikipedia/commons/thumb/${firstChar}/${firstTwoChars}/${fileName}/800px-${fileName}`;
-      }
-      // For direct Wikipedia commons URLs, use as-is
-      if (imageRef.includes('upload.wikimedia.org')) {
-        return imageRef;
-      }
-      return imageRef;
-    }
-    
     const name = speciesName.toLowerCase();
     
-    // Second priority: specific species mappings to our generated images
+    // First priority: specific species mappings to our generated images
     if (name.includes('asian elephant')) return asianElephantImage;
     if (name.includes('asian palm civet')) return asianPalmCivetImage;
     if (name.includes('asiatic lion')) return asiaticLionImage;
@@ -127,10 +110,26 @@ const Learn = () => {
     if (name.includes('indian star tortoise')) return indianStarTortoiseImage;
     if (name.includes('red panda')) return redPandaImage;
     
-    // Third priority: generic fallbacks
+    // Second priority: generic fallbacks
     if (name.includes('snake') || name.includes('krait') || name.includes('cobra') || name.includes('python')) return snakeImage;
     if (name.includes('monkey') || name.includes('macaque') || name.includes('langur')) return monkeyImage;
     if (name.includes('dog') || name.includes('stray')) return dogImage;
+    
+    // Third priority: use the database image reference (Wikipedia commons) as fallback
+    if (imageRef) {
+      // Convert Wikipedia file page URLs to direct image URLs
+      if (imageRef.includes('en.wikipedia.org/wiki/File:')) {
+        const fileName = imageRef.split('File:')[1];
+        const firstChar = fileName.charAt(0);
+        const firstTwoChars = fileName.substring(0, 2);
+        return `https://upload.wikimedia.org/wikipedia/commons/thumb/${firstChar}/${firstTwoChars}/${fileName}/800px-${fileName}`;
+      }
+      // For direct Wikipedia commons URLs, use as-is
+      if (imageRef.includes('upload.wikimedia.org')) {
+        return imageRef;
+      }
+      return imageRef;
+    }
     
     return '/placeholder.svg';
   };
