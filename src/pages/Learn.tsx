@@ -90,10 +90,15 @@ const Learn = () => {
     }
   };
   
-  const getSpeciesImage = (speciesName: string) => {
+  const getSpeciesImage = (speciesName: string, imageRef?: string) => {
+    // First priority: use the database image reference (Wikipedia commons)
+    if (imageRef) {
+      return imageRef;
+    }
+    
     const name = speciesName.toLowerCase();
     
-    // Specific species mappings
+    // Second priority: specific species mappings to our generated images
     if (name.includes('asian elephant')) return asianElephantImage;
     if (name.includes('asian palm civet')) return asianPalmCivetImage;
     if (name.includes('asiatic lion')) return asiaticLionImage;
@@ -110,7 +115,7 @@ const Learn = () => {
     if (name.includes('indian star tortoise')) return indianStarTortoiseImage;
     if (name.includes('red panda')) return redPandaImage;
     
-    // Generic fallbacks
+    // Third priority: generic fallbacks
     if (name.includes('snake') || name.includes('krait') || name.includes('cobra') || name.includes('python')) return snakeImage;
     if (name.includes('monkey') || name.includes('macaque') || name.includes('langur')) return monkeyImage;
     if (name.includes('dog') || name.includes('stray')) return dogImage;
@@ -155,7 +160,7 @@ const Learn = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 <img 
-                  src={selectedSpecies.image_ref || getSpeciesImage(selectedSpecies.common_name)}
+                  src={getSpeciesImage(selectedSpecies.common_name, selectedSpecies.image_ref)}
                   alt={`${selectedSpecies.common_name} in natural habitat`}
                   className="w-full h-64 object-cover rounded-xl"
                 />
@@ -279,7 +284,7 @@ const Learn = () => {
                 <CardHeader className="p-0">
                   <div className="relative overflow-hidden rounded-t-2xl">
                     <img 
-                      src={speciesItem.image_ref || getSpeciesImage(speciesItem.common_name)}
+                      src={getSpeciesImage(speciesItem.common_name, speciesItem.image_ref)}
                       alt={`${speciesItem.common_name} information card`}
                       className="w-full h-48 object-cover group-hover:scale-105 transition-smooth"
                     />
