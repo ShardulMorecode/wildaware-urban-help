@@ -1,4 +1,10 @@
 project_id = "srmxwubpljzfvhgdxrdr"
 
 [functions.wildlife-chat]
-verify_jwt = true
+verify_jwt = false
+
+[functions.rag-chat]
+verify_jwt = false
+
+[functions.embed-knowledge]
+verify_jwt = false

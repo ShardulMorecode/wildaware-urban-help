@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Camera, MapPin, Shield, Phone, AlertTriangle } from 'lucide-react';
+import { Send, Camera, MapPin, Shield, Phone, AlertTriangle, Sparkles, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useRAGChat } from '@/hooks/useRAGChat';
 
 interface ClassificationResult {
   speciesGuess: string;
@@ -27,15 +28,17 @@ const ChatInterface = ({ onClassification }: { onClassification: (result: Classi
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! I'm your WildAware assistant. I have access to comprehensive Indian wildlife databases, rescue organizations, and safety protocols. Describe any wildlife encounter and I'll provide expert guidance. Are you currently in a safe location?",
+      text: "Hello! I'm your WildAware assistant powered by RAG and Gemini AI. I have access to comprehensive Indian wildlife databases, rescue organizations, and safety protocols. Describe any wildlife encounter and I'll provide expert guidance. Are you currently in a safe location?",
       sender: 'system',
       timestamp: new Date()
     }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [useRAG, setUseRAG] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { sendMessage: sendRAGMessage, initializeKnowledgeBase, isLoading: ragLoading } = useRAGChat();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -46,7 +49,7 @@ const ChatInterface = ({ onClassification }: { onClassification: (result: Classi
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading || ragLoading) return;
 
     const userMessage: Message = {
       id: Date.now(),
@@ -56,21 +59,34 @@ const ChatInterface = ({ onClassification }: { onClassification: (result: Classi
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageText = input;
     setIsLoading(true);
     setInput('');
 
     try {
-      // Call wildlife chat function
-      const { data, error } = await supabase.functions.invoke('wildlife-chat', {
-        body: { 
-          message: input
+      let response, classification;
+
+      if (useRAG) {
+        // Use the new RAG-enhanced chat
+        const ragResponse = await sendRAGMessage(messageText);
+        if (ragResponse) {
+          response = ragResponse.response;
+          classification = ragResponse.classification;
+        } else {
+          throw new Error('RAG response failed');
         }
-      });
+      } else {
+        // Fallback to original wildlife-chat function
+        const { data, error } = await supabase.functions.invoke('wildlife-chat', {
+          body: { message: messageText }
+        });
 
-      if (error) throw error;
+        if (error) throw error;
+        
+        response = data.response;
+        classification = data.classification;
+      }
 
-      const { response, classification } = data;
-      
       // Update classification in parent component
       if (classification) {
         onClassification(classification);
@@ -123,6 +139,42 @@ const ChatInterface = ({ onClassification }: { onClassification: (result: Classi
 
   return (
     <div className="flex flex-col h-full">
+      {/* Header with RAG toggle */}
+      <div className="border-b p-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">Chat Mode:</span>
+          <div className="flex items-center gap-1">
+            <Button
+              variant={useRAG ? "default" : "outline"}
+              size="sm"
+              onClick={() => setUseRAG(true)}
+              className="flex items-center gap-1"
+            >
+              <Sparkles className="w-3 h-3" />
+              RAG Enhanced
+            </Button>
+            <Button
+              variant={!useRAG ? "default" : "outline"}
+              size="sm"
+              onClick={() => setUseRAG(false)}
+              className="flex items-center gap-1"
+            >
+              <Database className="w-3 h-3" />
+              Standard
+            </Button>
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={initializeKnowledgeBase}
+          disabled={ragLoading}
+          className="text-xs"
+        >
+          Update Knowledge Base
+        </Button>
+      </div>
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
@@ -158,14 +210,16 @@ const ChatInterface = ({ onClassification }: { onClassification: (result: Classi
           </div>
         ))}
         
-        {isLoading && (
+        {(isLoading || ragLoading) && (
           <div className="flex justify-start">
             <Card className="bg-card p-4">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
                 <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                 <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                <span className="text-sm text-muted-foreground ml-2">Analyzing...</span>
+                <span className="text-sm text-muted-foreground ml-2">
+                  {useRAG ? "Processing with RAG..." : "Analyzing..."}
+                </span>
               </div>
             </Card>
           </div>
@@ -232,7 +286,7 @@ const ChatInterface = ({ onClassification }: { onClassification: (result: Classi
           </div>
           <Button
             onClick={handleSend}
-            disabled={!input.trim() || isLoading}
+            disabled={!input.trim() || isLoading || ragLoading}
             size="touch"
             variant="nature"
             className="self-end"
