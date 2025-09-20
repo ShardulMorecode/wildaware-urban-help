@@ -103,53 +103,17 @@ export class PathwayMonitoringService {
     this.subscribers.forEach(callback => callback(reports));
   }
 
-  // Generate mock reports for demonstration
+  // Check for actual PDF files in reports folder
   private generateMockReports(): ReportData[] {
-    const now = new Date();
-    return [
-      {
-        id: 'report_1',
-        fileName: 'wildlife-report-2024-01-15T14-30-00.pdf',
-        filePath: '/reports/wildlife-report-2024-01-15T14-30-00.pdf',
-        lastModified: new Date(now.getTime() - 60000), // 1 minute ago
-        content: {
-          observerName: 'John Doe',
-          species: 'Asian Elephant',
-          city: 'Thiruvananthapuram',
-          location: 'Near Zoological Park',
-          date: '2024-01-15',
-          time: '14:30',
-          urgencyLevel: 'Medium',
-          weather: 'Sunny',
-          animalBehavior: 'Feeding',
-          description: 'Large elephant spotted near residential area, appears calm but blocking traffic.'
-        }
-      },
-      {
-        id: 'report_2',
-        fileName: 'wildlife-report-2024-01-15T09-15-00.pdf',
-        filePath: '/reports/wildlife-report-2024-01-15T09-15-00.pdf',
-        lastModified: new Date(now.getTime() - 300000), // 5 minutes ago
-        content: {
-          observerName: 'Sarah Wilson',
-          species: 'King Cobra',
-          city: 'Kochi',
-          location: 'Marine Drive Gardens',
-          date: '2024-01-15',
-          time: '09:15',
-          urgencyLevel: 'High',
-          weather: 'Cloudy',
-          animalBehavior: 'Defensive',
-          description: 'Large cobra spotted in public garden area, people maintaining safe distance.'
-        }
-      }
-    ];
+    // Return empty array - will be populated when actual PDFs are added to src/reports folder
+    // The Python Pathway monitoring script will handle PDF parsing and data extraction
+    return [];
   }
 }
 
 // Create and export singleton instance
 export const pathwayMonitor = new PathwayMonitoringService({
-  reportFolderPath: './reports',
+  reportFolderPath: './src/reports',
   filePattern: 'wildlife-report-*.pdf',
   pollingInterval: 30000 // 30 seconds
 });

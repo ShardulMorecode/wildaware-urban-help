@@ -1,0 +1,3 @@
+# Reports folder for wildlife PDF reports
+# PDFs generated from the report form will be stored here
+# The Pathway monitoring service will watch this folder for real-time updates

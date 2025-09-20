@@ -104,7 +104,10 @@ const Report = () => {
       
       // Create filename with timestamp
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const fileName = `wildlife-report-${timestamp}.pdf`;
+    const fileName = `wildlife-report-${timestamp}.pdf`;
+    
+    // Note: In a real implementation, this PDF would be saved to src/reports folder
+    // The Pathway monitoring service would then detect and process it automatically
       
       // Save PDF to downloads (simulating save to report folder)
       pdf.save(fileName);

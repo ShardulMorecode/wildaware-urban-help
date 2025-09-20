@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Activity, MapPin, Clock, AlertTriangle } from 'lucide-react';
+import { pathwayMonitor } from '@/services/pathwayMonitoring';
 
 interface MonitoringData {
   id: string;
@@ -24,71 +25,31 @@ export const WildlifeMonitoringPanel = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load monitoring data from Pathway framework output
-    const loadMonitoringData = async () => {
-      try {
-        // In production, this would read from the Pathway monitoring service output
-        // For now, we'll check for the monitoring_data.json file or use mock data
-        const mockData: MonitoringData[] = [
-        {
-          id: '1',
-          observerName: 'John Doe',
-          species: 'Asian Elephant',
-          city: 'Thiruvananthapuram',
-          location: 'Near Zoological Park',
-          date: '2024-01-15',
-          time: '14:30',
-          urgencyLevel: 'Medium',
-          weather: 'Sunny',
-          animalBehavior: 'Feeding',
-          description: 'Large elephant spotted near residential area, appears calm but blocking traffic.',
-          reportFile: 'wildlife-report-2024-01-15T14-30-00.pdf'
-        },
-        {
-          id: '2',
-          observerName: 'Sarah Wilson',
-          species: 'King Cobra',
-          city: 'Kochi',
-          location: 'Marine Drive Gardens',
-          date: '2024-01-15',
-          time: '09:15',
-          urgencyLevel: 'High',
-          weather: 'Cloudy',
-          animalBehavior: 'Defensive',
-          description: 'Large cobra spotted in public garden area, people maintaining safe distance.',
-          reportFile: 'wildlife-report-2024-01-15T09-15-00.pdf'
-        },
-        {
-          id: '3',
-          observerName: 'Mike Chen',
-          species: 'Bonnet Macaque',
-          city: 'Kozhikode',
-          location: 'City Market Area',
-          date: '2024-01-15',
-          time: '11:45',
-          urgencyLevel: 'Low',
-          weather: 'Partly Cloudy',
-          animalBehavior: 'Foraging',
-          description: 'Group of macaques foraging in market area, occasional interaction with vendors.',
-          reportFile: 'wildlife-report-2024-01-15T11-45-00.pdf'
-        }
-      ];
+    // Initialize Pathway monitoring
+    pathwayMonitor.initialize();
 
-        setMonitoringData(mockData);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error loading monitoring data:', error);
-        setIsLoading(false);
-      }
-    };
+    // Subscribe to real-time updates from PDF reports
+    const unsubscribe = pathwayMonitor.subscribe((reports) => {
+      const formattedData: MonitoringData[] = reports.map(report => ({
+        id: report.id,
+        observerName: report.content?.observerName || 'Unknown',
+        species: report.content?.species || 'Unknown Species',
+        city: report.content?.city || 'Unknown City',
+        location: report.content?.location || 'Unknown Location',
+        date: report.content?.date || '',
+        time: report.content?.time || '',
+        urgencyLevel: report.content?.urgencyLevel || 'Low',
+        weather: report.content?.weather || '',
+        animalBehavior: report.content?.animalBehavior || '',
+        description: report.content?.description || '',
+        reportFile: report.fileName
+      }));
+      
+      setMonitoringData(formattedData);
+      setIsLoading(false);
+    });
 
-    // Initial load
-    loadMonitoringData();
-
-    // Simulate real-time updates every 30 seconds
-    const interval = setInterval(loadMonitoringData, 30000);
-
-    return () => clearInterval(interval);
+    return unsubscribe;
   }, []);
 
   const getUrgencyColor = (urgency: string) => {
