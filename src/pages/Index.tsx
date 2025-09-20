@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowRight, Shield, Users, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { WildlifeMonitoringPanel } from '@/components/WildlifeMonitoringPanel';
 import heroImage from '@/assets/hero-wildlife.jpg';
 
 const Index = () => {
@@ -68,7 +69,7 @@ const Index = () => {
 
       {/* Feature Highlights */}
       <section className="container mx-auto px-4 py-6">
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-3 gap-4 mb-6">
           <Card className="p-4 text-center hover:shadow-card transition-smooth">
             <Shield className="w-8 h-8 text-primary mx-auto mb-3" />
             <h3 className="text-base font-semibold mb-2">Instant Safety Tips</h3>
@@ -92,6 +93,11 @@ const Index = () => {
               24/7 emergency helplines and first aid guidance
             </p>
           </Card>
+        </div>
+
+        {/* Wildlife Monitoring Panel */}
+        <div className="max-w-4xl mx-auto">
+          <WildlifeMonitoringPanel />
         </div>
       </section>
 

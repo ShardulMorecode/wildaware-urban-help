@@ -1,35 +1,93 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Camera, MapPin, CheckCircle, Calendar } from 'lucide-react';
+import { Camera, MapPin, CheckCircle, Calendar, FileDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import { addSighting, sightings } from '@/data/wildlife-data';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const Report = () => {
   const [formData, setFormData] = useState({
     species: '',
     location: '',
     description: '',
-    city: localStorage.getItem('wildaware-city') || ''
+    city: localStorage.getItem('wildaware-city') || '',
+    observerName: '',
+    date: new Date().toISOString().split('T')[0],
+    time: new Date().toLocaleTimeString('en-US', { hour12: false }).slice(0,5),
+    weather: '',
+    animalBehavior: '',
+    urgencyLevel: ''
   });
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const cities = [
-    'Thiruvananthapuram', 'Kochi', 'Kozhikode', 'Thrissur', 'Palakkad',
-    'Alappuzha', 'Kollam', 'Kannur', 'Kasaragod', 'Malappuram'
-  ];
+  const generatePDF = async (reportData: any) => {
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    
+    // Title
+    pdf.setFontSize(20);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Wildlife Monitoring Report', pageWidth / 2, 30, { align: 'center' });
+    
+    // Report details
+    let yPosition = 60;
+    const lineHeight = 10;
+    
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'normal');
+    
+    const reportFields = [
+      ['Observer Name:', reportData.observerName],
+      ['Date:', reportData.date],
+      ['Time:', reportData.time],
+      ['Wildlife Species:', reportData.species],
+      ['City:', reportData.city],
+      ['Specific Location:', reportData.location],
+      ['Weather Conditions:', reportData.weather],
+      ['Animal Behavior:', reportData.animalBehavior],
+      ['Urgency Level:', reportData.urgencyLevel],
+      ['Description:', reportData.description]
+    ];
+    
+    reportFields.forEach(([label, value]) => {
+      if (value) {
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(label, 20, yPosition);
+        pdf.setFont('helvetica', 'normal');
+        
+        if (label === 'Description:') {
+          const splitText = pdf.splitTextToSize(value, pageWidth - 40);
+          pdf.text(splitText, 20, yPosition + lineHeight);
+          yPosition += lineHeight * splitText.length + 5;
+        } else {
+          pdf.text(value, 80, yPosition);
+          yPosition += lineHeight + 5;
+        }
+      }
+    });
+    
+    // Add timestamp
+    pdf.setFontSize(10);
+    pdf.text(`Generated on: ${new Date().toLocaleString()}`, 20, pageHeight - 20);
+    
+    return pdf;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.species || !formData.location || !formData.description) {
+    if (!formData.species || !formData.location || !formData.description || !formData.observerName) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -40,8 +98,18 @@ const Report = () => {
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Generate PDF report
+      const pdf = await generatePDF(formData);
+      
+      // Create filename with timestamp
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const fileName = `wildlife-report-${timestamp}.pdf`;
+      
+      // Save PDF to downloads (simulating save to report folder)
+      pdf.save(fileName);
+      
+      // Add to sightings data
       const newSighting = addSighting({
         species: formData.species,
         location: formData.location,
@@ -52,8 +120,8 @@ const Report = () => {
       setIsSubmitting(false);
       
       toast({
-        title: "Sighting Reported",
-        description: "Thank you for contributing to wildlife tracking!",
+        title: "Report Generated Successfully",
+        description: `PDF report saved as ${fileName}`,
         variant: "default"
       });
 
@@ -62,12 +130,26 @@ const Report = () => {
         species: '',
         location: '',
         description: '',
-        city: formData.city
+        city: formData.city,
+        observerName: '',
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toLocaleTimeString('en-US', { hour12: false }).slice(0,5),
+        weather: '',
+        animalBehavior: '',
+        urgencyLevel: ''
       });
+      setSelectedImage(null);
 
       // Hide success message after 5 seconds
       setTimeout(() => setShowSuccess(false), 5000);
-    }, 1500);
+    } catch (error) {
+      setIsSubmitting(false);
+      toast({
+        title: "Error",
+        description: "Failed to generate report. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -131,47 +213,74 @@ const Report = () => {
             
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Species Selection */}
+                {/* Observer Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="observerName" className="text-sm font-medium">
+                    Observer Name <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="observerName"
+                    value={formData.observerName}
+                    onChange={(e) => handleInputChange('observerName', e.target.value)}
+                    placeholder="Your full name"
+                    className="rounded-xl"
+                  />
+                </div>
+
+                {/* Date and Time */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="date" className="text-sm font-medium">
+                      Date <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) => handleInputChange('date', e.target.value)}
+                      className="rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="time" className="text-sm font-medium">
+                      Time <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="time"
+                      type="time"
+                      value={formData.time}
+                      onChange={(e) => handleInputChange('time', e.target.value)}
+                      className="rounded-xl"
+                    />
+                  </div>
+                </div>
+
+                {/* Species */}
                 <div className="space-y-2">
                   <Label htmlFor="species" className="text-sm font-medium">
                     Wildlife Species <span className="text-destructive">*</span>
                   </Label>
-                  <Select 
-                    value={formData.species} 
-                    onValueChange={(value) => handleInputChange('species', value)}
-                  >
-                    <SelectTrigger id="species" className="rounded-xl">
-                      <SelectValue placeholder="Select the species you encountered" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="snake">Snake</SelectItem>
-                      <SelectItem value="monkey">Monkey</SelectItem>
-                      <SelectItem value="dog">Stray Dog</SelectItem>
-                      <SelectItem value="cat">Stray Cat</SelectItem>
-                      <SelectItem value="bird">Bird of Prey</SelectItem>
-                      <SelectItem value="other">Other Wildlife</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    id="species"
+                    value={formData.species}
+                    onChange={(e) => handleInputChange('species', e.target.value)}
+                    placeholder="e.g., Snake, Monkey, Elephant, etc."
+                    className="rounded-xl"
+                  />
                 </div>
 
-                {/* City Selection */}
+                {/* City */}
                 <div className="space-y-2">
                   <Label htmlFor="city" className="text-sm font-medium">
                     City <span className="text-destructive">*</span>
                   </Label>
-                  <Select 
-                    value={formData.city} 
-                    onValueChange={(value) => handleInputChange('city', value)}
-                  >
-                    <SelectTrigger id="city" className="rounded-xl">
-                      <SelectValue placeholder="Select your city" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {cities.map(city => (
-                        <SelectItem key={city} value={city}>{city}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    id="city"
+                    value={formData.city}
+                    onChange={(e) => handleInputChange('city', e.target.value)}
+                    placeholder="Your city name"
+                    className="rounded-xl"
+                  />
                 </div>
 
                 {/* Location */}
@@ -188,31 +297,77 @@ const Report = () => {
                   />
                 </div>
 
+                {/* Weather Conditions */}
+                <div className="space-y-2">
+                  <Label htmlFor="weather" className="text-sm font-medium">
+                    Weather Conditions
+                  </Label>
+                  <Input
+                    id="weather"
+                    value={formData.weather}
+                    onChange={(e) => handleInputChange('weather', e.target.value)}
+                    placeholder="e.g., Sunny, Rainy, Cloudy, etc."
+                    className="rounded-xl"
+                  />
+                </div>
+
+                {/* Animal Behavior */}
+                <div className="space-y-2">
+                  <Label htmlFor="animalBehavior" className="text-sm font-medium">
+                    Animal Behavior
+                  </Label>
+                  <Input
+                    id="animalBehavior"
+                    value={formData.animalBehavior}
+                    onChange={(e) => handleInputChange('animalBehavior', e.target.value)}
+                    placeholder="e.g., Aggressive, Calm, Feeding, etc."
+                    className="rounded-xl"
+                  />
+                </div>
+
+                {/* Urgency Level */}
+                <div className="space-y-2">
+                  <Label htmlFor="urgencyLevel" className="text-sm font-medium">
+                    Urgency Level
+                  </Label>
+                  <Input
+                    id="urgencyLevel"
+                    value={formData.urgencyLevel}
+                    onChange={(e) => handleInputChange('urgencyLevel', e.target.value)}
+                    placeholder="e.g., Low, Medium, High, Emergency"
+                    className="rounded-xl"
+                  />
+                </div>
+
                 {/* Description */}
                 <div className="space-y-2">
                   <Label htmlFor="description" className="text-sm font-medium">
-                    Description <span className="text-destructive">*</span>
+                    Detailed Description <span className="text-destructive">*</span>
                   </Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
-                    placeholder="Describe the animal's behavior, size, and any other relevant details..."
+                    placeholder="Describe the animal's behavior, size, condition, and any other relevant details..."
                     className="min-h-[120px] rounded-xl"
                   />
                 </div>
 
-                {/* Photo Upload Placeholder */}
+                {/* Photo Upload */}
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Photo (Optional)</Label>
-                  <div className="border-2 border-dashed border-muted rounded-xl p-4 text-center">
-                    <Camera className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-xs text-muted-foreground mb-1">
-                      Photo upload coming soon
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      For now, include photo details in the description
-                    </p>
+                  <div className="border-2 border-dashed border-muted rounded-xl p-4">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
+                      className="w-full"
+                    />
+                    {selectedImage && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Selected: {selectedImage.name}
+                      </p>
+                    )}
                   </div>
                 </div>
 

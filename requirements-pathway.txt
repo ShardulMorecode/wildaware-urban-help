@@ -1,0 +1,17 @@
+# Python requirements for Pathway wildlife monitoring
+# Install with: pip install -r requirements-pathway.txt
+
+pathway>=0.8.0
+pandas>=1.5.0
+PyPDF2>=3.0.0
+watchdog>=3.0.0
+python-dateutil>=2.8.0
+
+# Optional dependencies for enhanced functionality
+pdfplumber>=0.9.0  # Alternative PDF parsing
+python-magic>=0.4.0  # File type detection
+psutil>=5.9.0  # System monitoring
+
+# For Windows-specific functionality
+pywin32>=304; sys_platform == "win32"
+wmi>=1.5.1; sys_platform == "win32"
