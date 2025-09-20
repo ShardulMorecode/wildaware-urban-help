@@ -40,13 +40,11 @@ except ImportError as e:
 # Configuration
 REPORTS_FOLDER = os.getenv('REPORTS_PATH', './src/reports')
 OUTPUT_JSON = os.getenv('OUTPUT_PATH', './public/monitoring_data.json')
-POLL_INTERVAL = int(os.getenv('POLL_INTERVAL', '5'))  # seconds - faster for development
+POLL_INTERVAL = int(os.getenv('POLL_INTERVAL', '2'))  # seconds - faster for development
 
-# Windows-specific paths
-if os.name == 'nt':  # Windows
-    # For local development, use relative paths to the project
-    REPORTS_FOLDER = os.getenv('REPORTS_PATH', './src/reports')
-    OUTPUT_JSON = os.getenv('OUTPUT_PATH', './public/monitoring_data.json')
+# Ensure absolute paths for proper monitoring
+REPORTS_FOLDER = os.path.abspath(REPORTS_FOLDER)
+OUTPUT_JSON = os.path.abspath(OUTPUT_JSON)
 
 # Setup logging
 logging.basicConfig(
@@ -149,33 +147,8 @@ class WildlifeReportMonitor:
     
     def setup_pathway_pipeline(self):
         """Setup Pathway data processing pipeline"""
-        try:
-            # Create Pathway input connector for file monitoring
-            input_table = pw.io.fs.read(
-                self.reports_folder,
-                format="binary",
-                mode="streaming",
-                with_metadata=True,
-                autocommit_duration_ms=1000
-            )
-            
-            # Process PDF files
-            processed_table = input_table.select(
-                filename=pw.this.path,
-                content=pw.this.data,
-                modified_time=pw.this.modified_time
-            ).filter(
-                pw.this.filename.str.endswith('.pdf')
-            )
-            
-            # Output processed data
-            pw.io.jsonlines.write(processed_table, self.output_path)
-            
-            return processed_table
-            
-        except Exception as e:
-            logger.error(f"Error setting up Pathway pipeline: {e}")
-            return None
+        logger.info("Pathway not available, using fallback monitoring")
+        return None
     
     def process_pdf_file(self, file_path: Path) -> Dict[str, Any]:
         """Process a single PDF file"""
@@ -247,6 +220,13 @@ class WildlifeReportMonitor:
     def run_monitoring_loop(self):
         """Run continuous monitoring loop"""
         logger.info("Starting wildlife report monitoring...")
+        logger.info(f"Monitoring folder: {self.reports_folder}")
+        logger.info(f"Output file: {self.output_path}")
+        
+        # Initial scan
+        logger.info("Performing initial scan...")
+        reports = self.scan_existing_files()
+        self.save_monitoring_data(reports)
         
         while True:
             try:
@@ -255,6 +235,9 @@ class WildlifeReportMonitor:
                 
                 # Save current data
                 self.save_monitoring_data(reports)
+                
+                if len(reports) > 0:
+                    logger.info(f"Found and processed {len(reports)} reports")
                 
                 # Wait before next scan
                 time.sleep(POLL_INTERVAL)

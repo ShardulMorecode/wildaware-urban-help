@@ -1,5 +1,28 @@
 # Local Development Setup for Wildlife Monitoring
 
+## Quick Start for PDF Monitoring
+
+1. **Install Python dependencies** (one-time setup):
+   ```bash
+   pip install PyPDF2 watchdog
+   ```
+
+2. **Start the monitoring system** (run this every time):
+   ```bash
+   python start_monitoring.py
+   ```
+   OR directly:
+   ```bash
+   python pathway_monitor.py
+   ```
+
+3. **Add PDF reports** to the `src/reports` folder - they will automatically appear in the Wildlife Monitoring panel!
+
+## Important Notes:
+- The Python monitoring script MUST be running for real-time updates
+- PDF reports should contain structured data with fields like "Observer Name:", "Species:", etc.
+- The monitoring panel will be empty until PDFs are added and the Python script is running
+
 ## Prerequisites
 
 1. **Node.js** (for the React app)
@@ -18,13 +41,18 @@ npm run dev
 
 ### 2. Setup Python Environment (Required for PDF Monitoring)
 
-#### Option A: Using pip directly
+#### Option A: Using pip directly (Easiest)
 ```bash
-# Install Python requirements
+# Install only required packages
+pip install PyPDF2 watchdog
+```
+
+#### Option B: Using requirements file
+```bash
 pip install -r requirements-pathway.txt
 ```
 
-#### Option B: Using virtual environment (Recommended)
+#### Option C: Using virtual environment (Recommended)
 ```bash
 # Create virtual environment
 python -m venv venv
@@ -36,12 +64,16 @@ venv\Scripts\activate
 source venv/bin/activate
 
 # Install requirements
-pip install -r requirements-pathway.txt
+pip install PyPDF2 watchdog
 ```
 
 ### 3. Start the PDF Monitoring Service
 
 In a separate terminal (with Python environment activated):
+```bash
+python start_monitoring.py
+```
+OR
 ```bash
 python pathway_monitor.py
 ```
