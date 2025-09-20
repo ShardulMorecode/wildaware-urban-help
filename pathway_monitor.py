@@ -27,14 +27,12 @@ from typing import Dict, List, Any
 import pandas as pd
 
 try:
-    import pathway as pw
-    from pathway.xpacks.connectors import fs
     import PyPDF2
     from watchdog.observers import Observer
     from watchdog.events import FileSystemEventHandler
 except ImportError as e:
     print(f"Missing required packages: {e}")
-    print("Please install: pip install pathway pandas PyPDF2 watchdog")
+    print("Please install: pip install PyPDF2 watchdog")
     sys.exit(1)
 
 # Configuration
@@ -147,7 +145,7 @@ class WildlifeReportMonitor:
     
     def setup_pathway_pipeline(self):
         """Setup Pathway data processing pipeline"""
-        logger.info("Pathway not available, using fallback monitoring")
+        logger.info("Using watchdog-based monitoring for real-time PDF processing")
         return None
     
     def process_pdf_file(self, file_path: Path) -> Dict[str, Any]:
@@ -283,12 +281,7 @@ def main():
     # Setup Pathway pipeline (if available)
     pipeline = monitor.setup_pathway_pipeline()
     
-    if pipeline:
-        logger.info("Using Pathway framework for real-time processing")
-        # Run Pathway processing
-        pw.run()
-    else:
-        logger.info("Using fallback polling-based monitoring")
+    logger.info("Using watchdog-based real-time monitoring")
         
         # Setup file system watcher for real-time detection
         event_handler = FileChangeHandler(monitor)
