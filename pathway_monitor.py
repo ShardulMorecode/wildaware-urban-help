@@ -38,14 +38,15 @@ except ImportError as e:
     sys.exit(1)
 
 # Configuration
-REPORTS_FOLDER = os.getenv('REPORTS_PATH', './reports')
-OUTPUT_JSON = os.getenv('OUTPUT_PATH', './monitoring_data.json')
-POLL_INTERVAL = int(os.getenv('POLL_INTERVAL', '30'))  # seconds
+REPORTS_FOLDER = os.getenv('REPORTS_PATH', './src/reports')
+OUTPUT_JSON = os.getenv('OUTPUT_PATH', './public/monitoring_data.json')
+POLL_INTERVAL = int(os.getenv('POLL_INTERVAL', '5'))  # seconds - faster for development
 
 # Windows-specific paths
 if os.name == 'nt':  # Windows
-    REPORTS_FOLDER = os.getenv('REPORTS_PATH', 'C:\\WildlifeReports')
-    OUTPUT_JSON = os.getenv('OUTPUT_PATH', 'C:\\WildlifeReports\\monitoring_data.json')
+    # For local development, use relative paths to the project
+    REPORTS_FOLDER = os.getenv('REPORTS_PATH', './src/reports')
+    OUTPUT_JSON = os.getenv('OUTPUT_PATH', './public/monitoring_data.json')
 
 # Setup logging
 logging.basicConfig(
