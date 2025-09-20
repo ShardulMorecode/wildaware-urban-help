@@ -282,19 +282,19 @@ def main():
     pipeline = monitor.setup_pathway_pipeline()
     
     logger.info("Using watchdog-based real-time monitoring")
-        
-        # Setup file system watcher for real-time detection
-        event_handler = FileChangeHandler(monitor)
-        observer = Observer()
-        observer.schedule(event_handler, str(monitor.reports_folder), recursive=False)
-        observer.start()
-        
-        try:
-            # Run monitoring loop
-            monitor.run_monitoring_loop()
-        finally:
-            observer.stop()
-            observer.join()
+    
+    # Setup file system watcher for real-time detection
+    event_handler = FileChangeHandler(monitor)
+    observer = Observer()
+    observer.schedule(event_handler, str(monitor.reports_folder), recursive=False)
+    observer.start()
+    
+    try:
+        # Run monitoring loop
+        monitor.run_monitoring_loop()
+    finally:
+        observer.stop()
+        observer.join()
 
 if __name__ == "__main__":
     main()
