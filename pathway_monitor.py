@@ -182,10 +182,7 @@ class WildlifeReportMonitor:
     def process_pdf_file(self, file_path: Path) -> Dict[str, Any]:
         """Process a single PDF file"""
         try:
-            if file_path.name in self.processed_files:
-                logger.info(f"Already processed: {file_path.name}")
-                return None
-            
+            # Don't skip already processed files - allow reprocessing
             logger.info(f"Processing: {file_path.name}")
             
             # Extract text from PDF
@@ -263,6 +260,10 @@ class WildlifeReportMonitor:
     def scan_existing_files(self) -> List[Dict[str, Any]]:
         """Scan existing PDF files in the reports folder"""
         reports = []
+        
+        # Clear processed files to allow reprocessing
+        self.processed_files.clear()
+        logger.info("Cleared processed files cache for fresh scan")
         
         if not self.reports_folder.exists():
             logger.warning(f"Reports folder does not exist: {self.reports_folder}")
